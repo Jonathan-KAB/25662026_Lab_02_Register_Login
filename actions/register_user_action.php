@@ -20,9 +20,11 @@ $name = $_POST['name'];
 $email = $_POST['email'];
 $password = $_POST['password'];
 $phone_number = $_POST['phone_number'];
+$country = $_POST['country'];
+$city = $_POST['city'];
 $role = $_POST['role'];
 
-$user_id = register_user_ctr($name, $email, $password, $phone_number, $role);
+$user_id = register_user_ctr($name, $email, $password, $phone_number, $country, $city, $role);
 
 if ($user_id) {
     $response['status'] = 'success';
@@ -34,3 +36,5 @@ if ($user_id) {
 }
 
 echo json_encode($response);
+
+?>

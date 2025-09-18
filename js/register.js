@@ -6,9 +6,11 @@ $(document).ready(function() {
         email = $('#email').val();
         password = $('#password').val();
         phone_number = $('#phone_number').val();
+        country = $('#country').val();  // Added this
+        city = $('#city').val();        // Added this
         role = $('input[name="role"]:checked').val();
 
-        if (name == '' || email == '' || password == '' || phone_number == '') {
+        if (name == '' || email == '' || password == '' || phone_number == '' || country == '' || city == '') {  // Added country and city check
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -34,9 +36,13 @@ $(document).ready(function() {
                 email: email,
                 password: password,
                 phone_number: phone_number,
+                country: country,    // Added this
+                city: city,          // Added this
                 role: role
             },
             success: function(response) {
+                console.log('Success response:', response); // Debug line
+                
                 if (response.status === 'success') {
                     Swal.fire({
                         icon: 'success',
@@ -55,11 +61,16 @@ $(document).ready(function() {
                     });
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.log('AJAX Error Details:'); // Debug lines
+                console.log('Status:', status);
+                console.log('Error:', error);
+                console.log('Response Text:', xhr.responseText);
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: 'An error occurred! Please try again later.',
+                    text: 'An error occurred! Check console for details.',
                 });
             }
         });

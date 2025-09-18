@@ -110,6 +110,20 @@
             animation: pulse 2s infinite;
         }
 
+        /* Custom styling for select dropdown */
+        .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            appearance: none;
+        }
+
+        .form-select:focus {
+            border-color: #ccd8d2;
+            box-shadow: 0 0 0 0.2rem rgba(204, 216, 210, 0.25);
+        }
+
         @keyframes pulse {
             0% {
                 transform: scale(1);
@@ -135,7 +149,7 @@
                         <h4>Register</h4>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="" class="mt-4" id="register-form">
+                        <form method="POST" action="../actions/register_action.php" class="mt-4" id="register-form">
                             <div class="mb-3">
                                 <label for="name" class="form-label">Name <i class="fa fa-user"></i></label>
                                 <input type="text" class="form-control animate__animated animate__fadeInUp" id="name" name="name" required>
@@ -151,6 +165,37 @@
                             <div class="mb-3">
                                 <label for="phone_number" class="form-label">Phone Number <i class="fa fa-phone"></i></label>
                                 <input type="text" class="form-control animate__animated animate__fadeInUp" id="phone_number" name="phone_number" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="country" class="form-label">Country <i class="fa fa-globe"></i></label>
+                                <select class="form-select animate__animated animate__fadeInUp" id="country" name="country" required>
+                                    <option value="" disabled selected>Select your country</option>
+                                    <option value="Ghana">Ghana</option>
+                                    <option value="Nigeria">Nigeria</option>
+                                    <option value="Kenya">Kenya</option>
+                                    <option value="South Africa">South Africa</option>
+                                    <option value="Egypt">Egypt</option>
+                                    <option value="Morocco">Morocco</option>
+                                    <option value="Tanzania">Tanzania</option>
+                                    <option value="Uganda">Uganda</option>
+                                    <option value="Ethiopia">Ethiopia</option>
+                                    <option value="Cameroon">Cameroon</option>
+                                    <option value="Ivory Coast">Ivory Coast</option>
+                                    <option value="Senegal">Senegal</option>
+                                    <option value="Zimbabwe">Zimbabwe</option>
+                                    <option value="Zambia">Zambia</option>
+                                    <option value="Botswana">Botswana</option>
+                                    <option value="Namibia">Namibia</option>
+                                    <option value="Mauritius">Mauritius</option>
+                                    <option value="Rwanda">Rwanda</option>
+                                    <option value="Malawi">Malawi</option>
+                                    <option value="Mozambique">Mozambique</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="city" class="form-label">City <i class="fa fa-map-marker-alt"></i></label>
+                                <input type="text" class="form-control animate__animated animate__fadeInUp" id="city" name="city" required>
                             </div>
                             <div class="mb-4">
                                 <label class="form-label">Register As</label>
@@ -179,8 +224,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/register.js">
-    </script>
+    <script src="../js/register.js"></script>
 </body>
 
 </html>
