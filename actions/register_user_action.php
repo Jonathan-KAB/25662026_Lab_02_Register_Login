@@ -14,7 +14,7 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
-require_once '../controllers/user_controller.php';
+require_once '../controllers/customer_controller.php';
 
 $name = $_POST['name'];
 $email = $_POST['email'];
