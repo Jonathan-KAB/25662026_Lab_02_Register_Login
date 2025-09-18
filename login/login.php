@@ -9,24 +9,24 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
         .btn-custom {
-            background-color: #D19C97;
-            border-color: #D19C97;
+            background-color: #ccd8d2;
+            border-color: #ccd8d2;
             color: #fff;
             transition: background-color 0.3s, border-color 0.3s;
         }
 
         .btn-custom:hover {
-            background-color: #b77a7a;
-            border-color: #b77a7a;
+            background-color: #00563b;
+            border-color: #00563b;
         }
 
         .highlight {
-            color: #D19C97;
+            color: #ccd8d2;
             transition: color 0.3s;
         }
 
         .highlight:hover {
-            color: #b77a7a;
+            color: #00563b;
         }
 
         body {
@@ -36,13 +36,13 @@
             /* Gradient-like grid using repeating-linear-gradients */
             background-image:
                 repeating-linear-gradient(0deg,
-                    #b77a7a,
-                    #b77a7a 1px,
+                    #00563b,
+                    #00563b 1px,
                     transparent 1px,
                     transparent 20px),
                 repeating-linear-gradient(90deg,
-                    #b77a7a,
-                    #b77a7a 1px,
+                    #00563b,
+                    #00563b 1px,
                     transparent 1px,
                     transparent 20px),
                 linear-gradient(rgba(183, 122, 122, 0.1),
@@ -73,7 +73,7 @@
         }
 
         .card-header {
-            background-color: #D19C97;
+            background-color: #ccd8d2;
             color: #fff;
         }
 
@@ -98,7 +98,7 @@
         /* Additional Styling for Enhanced Appearance */
         .form-label i {
             margin-left: 5px;
-            color: #b77a7a;
+            color: #00563b;
         }
 
         .alert-info {
