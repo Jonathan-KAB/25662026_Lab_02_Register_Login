@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
+# Test Email: test4@test.com
+# Password: testpass1A
+
+# Expected result should be a "login successful" pop up, revert if not working
+
 <head>
     <meta charset="UTF-8">
     <title>Example Login Page</title>

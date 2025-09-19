@@ -19,7 +19,7 @@ $(document).ready(function() {
         $.ajax({
             url: '../actions/login_user_action.php',
             method: 'POST',
-            dataType: 'json', // Add this to parse JSON
+            dataType: 'json', // Added to parse JSON
             data: {
                 email: email,
                 password: password
@@ -28,7 +28,7 @@ $(document).ready(function() {
                 console.log('Parsed response:', response); // Debug
                 if (response.status === 'success') {
                     alert('Login successful!');
-                    window.location.href = 'dashboard.php';
+                    window.location.href = 'index.php'; // no dashboard.php set up yet so I made it redirect user to index page, it's in my TO-DO tho
                 } else {
                     alert('Error: ' + response.message);
                 }
