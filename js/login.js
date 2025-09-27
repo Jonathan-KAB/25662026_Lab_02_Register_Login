@@ -31,7 +31,7 @@ $(document).ready(function() {
                     if (response.redirect) {
                         window.location.href = response.redirect;
                     } else {
-                        window.location.href = 'index.php';
+                        window.location.href = '../index.php';
                     }
                 } else {
                     alert('Error: ' + response.message);

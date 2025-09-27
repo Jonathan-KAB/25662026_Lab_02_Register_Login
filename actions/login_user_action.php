@@ -40,9 +40,9 @@ if ($user) {
 
     $response['status'] = 'success';
     $response['message'] = 'Login successful';
-    // If admin, send redirect URL
+    // If admin, send redirect URL (relative path for subfolder support)
     if ($user['user_role'] == 2) {
-        $response['redirect'] = '/admin/category.php';
+        $response['redirect'] = '../admin/category.php';
     }
 } else {
     $response['status'] = 'error';
