@@ -17,7 +17,7 @@ else{
 }
 
 function isAdmin(){
-    if isLoggedIn(){
+    if (isLoggedIn()){
         return $_SESSION['user_role'] == 2;
     }
 }
