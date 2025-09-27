@@ -31,14 +31,19 @@ if (!$existing_user) {
 // Try to authenticate
 $user = authenticate_user_ctr($email, $password);
 
+
 if ($user) {
     $_SESSION['user_id'] = $user['customer_id'];
     $_SESSION['user_name'] = $user['customer_name'];
     $_SESSION['user_email'] = $user['customer_email'];
     $_SESSION['user_role'] = $user['user_role'];
-    
+
     $response['status'] = 'success';
     $response['message'] = 'Login successful';
+    // If admin, send redirect URL
+    if ($user['user_role'] == 2) {
+        $response['redirect'] = '/admin/category.php';
+    }
 } else {
     $response['status'] = 'error';
     $response['message'] = 'Invalid password';
