@@ -17,6 +17,7 @@ if (!isLoggedIn() || !isAdmin()) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Category Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/app.css" rel="stylesheet">
     <style>
         .menu-tray {
             position: fixed;
@@ -33,13 +34,13 @@ if (!isLoggedIn() || !isAdmin()) {
     </style>
 </head>
 <body>
-
     <div class="menu-tray">
-        <span class="me-2">Menu:</span>
+        <a href="brand.php" class="btn btn-sm btn-outline-primary">Brands</a>
+    <a href="../view/product.php" class="btn btn-sm btn-outline-secondary">Products</a>
         <a href="../login/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
     </div>
 
-    <div class="container" style="padding-top:120px; max-width:600px;">
+    <div class="container" style="padding-top:120px;">
         <div class="text-center mb-4">
             <h1>Category Management</h1>
             <p class="text-muted">Admin only view.</p>

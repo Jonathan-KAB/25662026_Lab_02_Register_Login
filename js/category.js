@@ -12,6 +12,7 @@ $(document).ready(function() {
                         tbody += '<tr>' +
                             '<td>' + $('<div>').text(cat.cat_name).html() + '</td>' +
                             '<td>' +
+                                
                                 '<button class="btn btn-sm btn-warning edit-category" data-id="' + cat.cat_id + '" data-name="' + $('<div>').text(cat.cat_name).html() + '">Edit</button> ' +
                                 '<button class="btn btn-sm btn-danger delete-category" data-id="' + cat.cat_id + '">Delete</button>' +
                             '</td>' +
