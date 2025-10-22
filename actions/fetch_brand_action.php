@@ -12,4 +12,9 @@ if ($user_id <= 0) {
 
 $brand = new Brand();
 $items = $brand->fetchBrandsByUser($user_id);
-echo json_encode($items);
+if ($items === false) {
+	$err = (isset($brand->db) && $brand->db) ? mysqli_error($brand->db) : '';
+	echo json_encode(['status' => 'error', 'message' => 'DB fetch failed', 'debug' => $err]);
+} else {
+	echo json_encode($items);
+}

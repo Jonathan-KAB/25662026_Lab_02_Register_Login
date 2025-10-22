@@ -23,7 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($res === 'duplicate') {
         $response['message'] = 'Brand already exists for this category and user';
     } else {
+        // try to include mysqli error for debugging (will be empty if not available)
+        $dbErr = '';
+        if (isset($brand->db) && $brand->db) {
+            $dbErr = mysqli_error($brand->db);
+        }
         $response['message'] = 'Database error while adding brand';
+        if ($dbErr) $response['debug'] = $dbErr;
     }
 }
 
