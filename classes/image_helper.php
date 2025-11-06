@@ -4,15 +4,20 @@
  * Handles image uploads for products, brands, and users
  */
 
+require_once __DIR__ . '/../settings/upload_config.php';
+
 class ImageUploadHelper
 {
     private $uploadsBaseDir;
+    private $uploadsWebPath;
     private $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     private $maxFileSize = 5242880; // 5MB in bytes
     
     public function __construct($baseDir = null)
     {
-        $this->uploadsBaseDir = $baseDir ?? __DIR__ . '/../uploads';
+        // Use configured upload path or provided path
+        $this->uploadsBaseDir = $baseDir ?? UPLOAD_BASE_PATH;
+        $this->uploadsWebPath = UPLOAD_WEB_PATH;
         
         // Ensure uploads directory exists
         if (!is_dir($this->uploadsBaseDir)) {
@@ -104,8 +109,8 @@ class ImageUploadHelper
         // Optional: Resize image if needed
         $this->resizeImage($targetPath, 1200, 1200);
         
-        // Return relative path from uploads directory
-        $relativePath = 'uploads/u' . $userId . '/' . $prefix . $entityId . '/' . $filename;
+        // Return web-accessible path for database storage
+        $relativePath = $this->uploadsWebPath . '/u' . $userId . '/' . $prefix . $entityId . '/' . $filename;
         
         return [
             'success' => true,

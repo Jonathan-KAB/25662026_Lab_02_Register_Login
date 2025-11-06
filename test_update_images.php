@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/settings/db_class.php';
+require_once __DIR__ . '/settings/upload_config.php';
 
 // Create database connection
 $db = new db_connection();
@@ -11,6 +12,9 @@ $db = new db_connection();
 if (!$db->db_connect()) {
     die("Database connection failed");
 }
+
+// Determine the correct image path based on environment
+$imagePath = UPLOAD_WEB_PATH . '/BS_3.png';
 
 // First, let's see what products we have
 echo "<h2>Current Products:</h2>";
@@ -31,14 +35,15 @@ if ($result) {
     
     // Update the first two products with BS_3.png
     echo "<h2>Updating Products:</h2>";
+    echo "<p>Using image path: <strong>" . htmlspecialchars($imagePath) . "</strong></p>";
     
     $productIds = array_slice(array_column($result, 'product_id'), 0, 2);
     
     foreach ($productIds as $productId) {
-        $updateQuery = "UPDATE products SET product_image = 'uploads/BS_3.png' WHERE product_id = $productId";
+        $updateQuery = "UPDATE products SET product_image = '" . mysqli_real_escape_string($db->db, $imagePath) . "' WHERE product_id = $productId";
         
         if ($db->db_query($updateQuery)) {
-            echo "✓ Updated product ID $productId with BS_3.png<br>";
+            echo "✓ Updated product ID $productId with $imagePath<br>";
         } else {
             echo "✗ Failed to update product ID $productId<br>";
         }
@@ -63,4 +68,9 @@ if ($result) {
 } else {
     echo "No products found";
 }
+
+echo "<h2>Environment Info:</h2>";
+echo "<p>Upload Base Path: " . UPLOAD_BASE_PATH . "</p>";
+echo "<p>Upload Web Path: " . UPLOAD_WEB_PATH . "</p>";
+echo "<p>Current Directory: " . __DIR__ . "</p>";
 ?>

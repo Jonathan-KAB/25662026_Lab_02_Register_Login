@@ -329,8 +329,17 @@ if (!$product) {
             <div class="product-image-section">
                 <div class="main-product-image">
                     <?php if (!empty($product['product_image'])): ?>
-                        <img src="../<?= htmlspecialchars($product['product_image']) ?>" 
-                             alt="<?= htmlspecialchars($product['product_title']) ?>">
+                        <?php 
+                        // Handle both /uploads and uploads paths
+                        $imagePath = $product['product_image'];
+                        if (strpos($imagePath, '/') === 0) {
+                            // Absolute path from root (school server)
+                            echo '<img src="' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['product_title']) . '">';
+                        } else {
+                            // Relative path (local XAMPP)
+                            echo '<img src="../' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['product_title']) . '">';
+                        }
+                        ?>
                     <?php else: ?>
                         <img src="../uploads/placeholder.jpg" 
                              alt="Product placeholder"
