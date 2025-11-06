@@ -4,91 +4,11 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Home - E-Commerce Store</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link href="css/app.css" rel="stylesheet">
-	<style>
-		.hero-section {
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			color: white;
-			padding: 60px 20px;
-			border-radius: 10px;
-			margin-bottom: 40px;
-			text-align: center;
-		}
-		.hero-section h1 {
-			font-size: 48px;
-			font-weight: bold;
-			margin-bottom: 20px;
-		}
-		.hero-section p {
-			font-size: 20px;
-			margin-bottom: 30px;
-		}
-		.hero-btn {
-			padding: 12px 30px;
-			font-size: 18px;
-			border-radius: 5px;
-		}
-		.search-section {
-			background: white;
-			padding: 30px;
-			border-radius: 10px;
-			box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-			margin-bottom: 40px;
-		}
-		.search-box-home {
-			display: flex;
-			gap: 10px;
-			max-width: 600px;
-			margin: 0 auto;
-		}
-		.search-box-home input {
-			flex: 1;
-			padding: 12px 20px;
-			border: 2px solid #ddd;
-			border-radius: 5px;
-			font-size: 16px;
-		}
-		.search-box-home button {
-			padding: 12px 30px;
-			background-color: #007bff;
-			color: white;
-			border: none;
-			border-radius: 5px;
-			cursor: pointer;
-			font-weight: 600;
-		}
-		.quick-links {
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-			gap: 20px;
-			margin-top: 40px;
-		}
-		.quick-link-card {
-			background: white;
-			padding: 30px;
-			border-radius: 10px;
-			box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-			text-align: center;
-			transition: transform 0.3s;
-		}
-		.quick-link-card:hover {
-			transform: translateY(-5px);
-		}
-		.quick-link-card h3 {
-			margin-bottom: 15px;
-			color: #333;
-		}
-		.quick-link-card p {
-			color: #666;
-			margin-bottom: 20px;
-		}
-	</style>
 </head>
 <body>
 
 	<div class="menu-tray">
-		<span class="me-2">Menu:</span>
 		<?php
 		require_once 'settings/core.php';
 		require_once 'settings/db_class.php';

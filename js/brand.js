@@ -17,27 +17,28 @@ $(document).ready(function() {
 
                 var html = '';
                 Object.keys(grouped).forEach(function(cat) {
-                    html += '<div class="col-12"><h5 class="mt-3">' + $('<div>').text(cat).html() + '</h5></div>';
+                    html += '<div class="category-section">';
+                    html += '<h5 class="category-header">' + $('<div>').text(cat).html() + '</h5>';
+                    html += '<div class="brand-grid">';
                     grouped[cat].forEach(function(b) {
-                        html += '<div class="col-md-4">\n'
-                            + '<div class="card">\n'
-                            + '  <div class="card-body">\n'
-                            + '    <h6 class="card-title">' + $('<div>').text(b.brand_name).html() + '</h6>\n'
-                            
-                            + '    <div class="d-flex gap-2">\n'
-                            + '      <button class="btn btn-sm btn-warning edit-brand" data-id="' + b.brand_id + '" data-name="' + $('<div>').text(b.brand_name).html() + '">Edit</button>\n'
-                            + '      <button class="btn btn-sm btn-danger delete-brand" data-id="' + b.brand_id + '">Delete</button>\n'
-                            + '    </div>\n'
-                            + '  </div>\n'
-                            + '</div>\n'
+                        html += '<div class="card">'
+                            + '  <div class="card-body">'
+                            + '    <h6 class="card-title">' + $('<div>').text(b.brand_name).html() + '</h6>'
+                            + '    <div class="d-flex gap-2">'
+                            + '      <button class="btn btn-sm btn-warning edit-brand" data-id="' + b.brand_id + '" data-name="' + $('<div>').text(b.brand_name).html() + '">Edit</button>'
+                            + '      <button class="btn btn-sm btn-danger delete-brand" data-id="' + b.brand_id + '">Delete</button>'
+                            + '    </div>'
+                            + '  </div>'
                             + '</div>';
                     });
+                    html += '</div>'; // close brand-grid
+                    html += '</div>'; // close category-section
                 });
-                if (html === '') html = '<div class="col-12 text-muted">No brands found.</div>';
+                if (html === '') html = '<div class="text-muted">No brands found.</div>';
                 $('#brands-container').html(html);
             },
             error: function() {
-                $('#brands-container').html('<div class="col-12 text-danger">Failed to fetch brands.</div>');
+                $('#brands-container').html('<div class="text-danger">Failed to fetch brands.</div>');
             }
         });
     }

@@ -18,16 +18,12 @@ $(function() {
             var html = '';
             if (Array.isArray(data) && data.length) {
                 data.forEach(function(p) {
-                    html += '<div class="col-md-4">'
-                        + '<div class="card">'
+                    html += '<div class="card">'
                         + '<div class="card-body">'
-                        + '<h6>' + $('<div>').text(p.product_title).html() + '</h6>'
-                        + '<p class="text-muted small">' + (p.cat_name||'') + ' / ' + (p.brand_name||'') + '</p>'
-                        + '<p>' + $('<div>').text(p.product_desc||'').html() + '</p>'
-                        + '<div class="d-flex gap-2">'
+                        + '<h6 class="card-title">' + $('<div>').text(p.product_title).html() + '</h6>'
+                        + '<p class="text-muted small" style="margin-bottom: 4px;">' + (p.cat_name||'') + ' / ' + (p.brand_name||'') + '</p>'
+                        + '<p class="text-muted" style="font-size: 0.875rem; margin-bottom: 10px;">' + $('<div>').text(p.product_desc||'').html() + '</p>'
                         + '<button class="btn btn-sm btn-primary edit-product" data-id="' + p.product_id + '">Edit</button>'
-                        + '</div>'
-                        + '</div>'
                         + '</div>'
                         + '</div>';
                 });
