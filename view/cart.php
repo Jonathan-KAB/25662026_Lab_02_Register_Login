@@ -1,0 +1,189 @@
+<?php
+/**
+ * Shopping Cart View
+ */
+
+session_start();
+require_once __DIR__ . '/../controllers/cart_controller.php';
+require_once __DIR__ . '/../settings/core.php';
+
+$ipAddress = $_SERVER['REMOTE_ADDR'];
+$customerId = isset($_SESSION['customer_id']) ? (int)$_SESSION['customer_id'] : null;
+
+$cartItems = get_cart_items_ctr($ipAddress, $customerId);
+$cartTotal = get_cart_total_ctr($ipAddress, $customerId);
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <div class="menu-tray">
+        <a href="../index.php" class="btn btn-sm btn-outline-secondary">Home</a>
+        <a href="all_product.php" class="btn btn-sm btn-outline-secondary">Products</a>
+        <a href="cart.php" class="btn btn-sm btn-primary">
+            Cart <span id="cart-count" class="cart-badge"><?= count($cartItems) ?></span>
+        </a>
+        <?php if (isLoggedIn()): ?>
+            <a href="../login/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
+        <?php else: ?>
+            <a href="../login/login.php" class="btn btn-sm btn-outline-primary">Login</a>
+        <?php endif; ?>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Shopping Cart</h1>
+            <p>Review your items before checkout</p>
+        </div>
+
+        <?php if (empty($cartItems)): ?>
+            <div class="card">
+                <div class="card-body" style="text-align: center; padding: 60px 20px;">
+                    <h3 style="color: var(--gray-600); margin-bottom: 16px;">Your cart is empty</h3>
+                    <p style="color: var(--gray-500); margin-bottom: 24px;">Add some products to get started!</p>
+                    <a href="all_product.php" class="btn btn-primary">Browse Products</a>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="cart-container">
+                <div class="cart-items">
+                    <?php foreach ($cartItems as $item): ?>
+                        <div class="cart-item" data-product-id="<?= $item['p_id'] ?>">
+                            <div class="cart-item-image">
+                                <?php if (!empty($item['product_image'])): ?>
+                                    <img src="../<?= htmlspecialchars($item['product_image']) ?>" alt="<?= htmlspecialchars($item['product_title']) ?>">
+                                <?php else: ?>
+                                    <div class="no-image">No Image</div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="cart-item-details">
+                                <h3 class="cart-item-title"><?= htmlspecialchars($item['product_title']) ?></h3>
+                                <p class="cart-item-meta">
+                                    <?= htmlspecialchars($item['cat_name']) ?> / <?= htmlspecialchars($item['brand_name']) ?>
+                                </p>
+                                <p class="cart-item-price">GH₵ <?= number_format($item['product_price'], 2) ?></p>
+                            </div>
+                            <div class="cart-item-quantity">
+                                <button class="qty-btn qty-decrease" onclick="updateQuantity(<?= $item['p_id'] ?>, -1)">−</button>
+                                <input type="number" class="qty-input" value="<?= $item['qty'] ?>" min="1" 
+                                       onchange="setQuantity(<?= $item['p_id'] ?>, this.value)" readonly>
+                                <button class="qty-btn qty-increase" onclick="updateQuantity(<?= $item['p_id'] ?>, 1)">+</button>
+                            </div>
+                            <div class="cart-item-subtotal">
+                                <p class="subtotal-label">Subtotal</p>
+                                <p class="subtotal-price">GH₵ <?= number_format($item['product_price'] * $item['qty'], 2) ?></p>
+                            </div>
+                            <button class="cart-item-remove" onclick="removeItem(<?= $item['p_id'] ?>)">
+                                <span>×</span>
+                            </button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="cart-summary">
+                    <div class="card">
+                        <div class="card-header">Order Summary</div>
+                        <div class="card-body">
+                            <div class="summary-row">
+                                <span>Items (<?= array_sum(array_column($cartItems, 'qty')) ?>)</span>
+                                <span id="subtotal">GH₵ <?= number_format($cartTotal, 2) ?></span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Shipping</span>
+                                <span>TBD</span>
+                            </div>
+                            <div class="summary-divider"></div>
+                            <div class="summary-row summary-total">
+                                <span>Total</span>
+                                <span id="total">GH₵ <?= number_format($cartTotal, 2) ?></span>
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="proceedToCheckout()">
+                                Proceed to Checkout
+                            </button>
+                            <a href="all_product.php" class="btn btn-outline-secondary btn-block" style="margin-top: 12px;">
+                                Continue Shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function updateQuantity(productId, change) {
+            const cartItem = $(`.cart-item[data-product-id="${productId}"]`);
+            const qtyInput = cartItem.find('.qty-input');
+            let newQty = parseInt(qtyInput.val()) + change;
+            
+            if (newQty < 1) newQty = 1;
+            
+            setQuantity(productId, newQty);
+        }
+
+        function setQuantity(productId, quantity) {
+            quantity = parseInt(quantity);
+            if (quantity < 1) quantity = 1;
+            
+            $.ajax({
+                url: '../actions/update_cart_action.php',
+                method: 'POST',
+                data: {
+                    product_id: productId,
+                    quantity: quantity
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Failed to update cart');
+                    }
+                },
+                error: function() {
+                    alert('Error updating cart');
+                }
+            });
+        }
+
+        function removeItem(productId) {
+            if (!confirm('Remove this item from cart?')) return;
+            
+            $.ajax({
+                url: '../actions/remove_from_cart_action.php',
+                method: 'POST',
+                data: { product_id: productId },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Failed to remove item');
+                    }
+                },
+                error: function() {
+                    alert('Error removing item');
+                }
+            });
+        }
+
+        function proceedToCheckout() {
+            <?php if (isLoggedIn()): ?>
+                window.location.href = 'checkout.php';
+            <?php else: ?>
+                if (confirm('You need to login to checkout. Go to login page?')) {
+                    window.location.href = '../login/login.php?redirect=view/checkout.php';
+                }
+            <?php endif; ?>
+        }
+    </script>
+</body>
+</html>

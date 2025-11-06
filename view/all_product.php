@@ -1,7 +1,14 @@
 <?php
 session_start();
 require_once __DIR__ . '/../controllers/product_controller.php';
+require_once __DIR__ . '/../controllers/cart_controller.php';
 require_once __DIR__ . '/../settings/db_class.php';
+require_once __DIR__ . '/../settings/core.php';
+
+// Get cart count
+$ipAddress = $_SERVER['REMOTE_ADDR'];
+$customerId = isset($_SESSION['customer_id']) ? (int)$_SESSION['customer_id'] : null;
+$cartCount = get_cart_count_ctr($ipAddress, $customerId);
 
 // Pagination settings
 $limit = 12; // Products per page
@@ -46,30 +53,33 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
     <link rel="stylesheet" href="../css/app.css">
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-content">
-            <a href="../index.php" class="logo">E-Commerce Store</a>
-            <nav class="nav-links">
-                <a href="../index.php">Home</a>
-                <a href="all_product.php">All Products</a>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="../login/logout.php">Logout</a>
-                <?php else: ?>
-                    <a href="../login/login.php">Login</a>
-                    <a href="../login/register.php">Register</a>
-                <?php endif; ?>
-            </nav>
+    <!-- Navigation Menu Tray -->
+    <div class="menu-tray">
+        <a href="../index.php" class="btn btn-sm btn-outline-secondary">Home</a>
+        <a href="all_product.php" class="btn btn-sm btn-primary">All Products</a>
+        <a href="cart.php" class="btn btn-sm btn-outline-secondary">
+            Cart <?php if ($cartCount > 0): ?><span class="cart-badge" id="cart-count"><?= $cartCount ?></span><?php endif; ?>
+        </a>
+        <?php if (isLoggedIn()): ?>
+            <?php if (isAdmin()): ?>
+                <a href="../admin/category.php" class="btn btn-sm btn-outline-secondary">Admin</a>
+            <?php endif; ?>
+            <a href="../login/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
+        <?php else: ?>
+            <a href="../login/login.php" class="btn btn-sm btn-outline-secondary">Login</a>
+            <a href="../login/register.php" class="btn btn-sm btn-outline-primary">Register</a>
+        <?php endif; ?>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1>All Products</h1>
+            <p>Discover our wide range of products</p>
         </div>
     </div>
 
     <div class="container">
-        <!-- Page Title -->
-        <div class="page-title">
-            <h1>All Products</h1>
-            <p>Discover our wide range of products</p>
-        </div>
-
         <!-- Search and Filter Section -->
         <div class="search-filter-section">
             <form method="GET" action="" id="searchForm">
@@ -214,11 +224,38 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
         <?php endif; ?>
     </div>
 
+    <!-- Load jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
     <script>
-        // Add to cart functionality (placeholder for now)
+        // Add to cart functionality
         function addToCart(productId) {
-            alert('Add to cart functionality will be implemented in the next lab.\nProduct ID: ' + productId);
-            // TODO: Implement actual add to cart functionality in future lab
+            $.ajax({
+                url: '../actions/add_to_cart_action.php',
+                method: 'POST',
+                data: {
+                    product_id: productId,
+                    quantity: 1
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('Item added to cart successfully!');
+                        // Update cart count if you have a cart badge
+                        if ($('#cart-count').length) {
+                            $('#cart-count').text(response.cart_count).show();
+                        } else {
+                            // Create badge if it doesn't exist
+                            $('a[href="cart.php"]').append('<span class="cart-badge" id="cart-count">' + response.cart_count + '</span>');
+                        }
+                    } else {
+                        alert(response.message || 'Failed to add item to cart');
+                    }
+                },
+                error: function() {
+                    alert('Error adding item to cart');
+                }
+            });
         }
 
         // Optional: Add loading state to buttons

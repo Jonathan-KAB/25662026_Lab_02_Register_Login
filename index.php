@@ -12,9 +12,18 @@
 		<?php
 		require_once 'settings/core.php';
 		require_once 'settings/db_class.php';
+		require_once 'controllers/cart_controller.php';
+		
+		// Get cart count
+		$ipAddress = $_SERVER['REMOTE_ADDR'];
+		$customerId = isset($_SESSION['customer_id']) ? (int)$_SESSION['customer_id'] : null;
+		$cartCount = get_cart_count_ctr($ipAddress, $customerId);
 		?>
 		<a href="index.php" class="btn btn-sm btn-primary">Home</a>
 		<a href="view/all_product.php" class="btn btn-sm btn-outline-info">All Products</a>
+		<a href="view/cart.php" class="btn btn-sm btn-outline-secondary">
+			Cart <?php if ($cartCount > 0): ?><span class="cart-badge" id="cart-count"><?= $cartCount ?></span><?php endif; ?>
+		</a>
 		<?php if (!isLoggedIn()): ?>
 			<a href="login/register.php" class="btn btn-sm btn-outline-primary">Register</a>
 			<a href="login/login.php" class="btn btn-sm btn-outline-secondary">Login</a>

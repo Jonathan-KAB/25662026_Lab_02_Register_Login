@@ -405,25 +405,44 @@ if (!$product) {
         </div>
     </div>
 
+    <!-- Load jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
     <script>
-        // Add to cart functionality (placeholder for now)
+        // Add to cart functionality
         function addToCart(productId) {
-            alert('Add to cart functionality will be implemented in the next lab.\nProduct ID: ' + productId);
-            // TODO: Implement actual add to cart functionality in future lab
-            
-            // Optional: Add visual feedback
-            const btn = document.querySelector('.add-to-cart-btn');
-            const originalText = btn.textContent;
-            btn.textContent = 'Adding...';
-            btn.disabled = true;
-            
-            setTimeout(() => {
-                btn.textContent = 'Added to Cart!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }, 1500);
-            }, 500);
+            $.ajax({
+                url: '../actions/add_to_cart_action.php',
+                method: 'POST',
+                data: {
+                    product_id: productId,
+                    quantity: 1
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        const btn = document.querySelector('.add-to-cart-btn');
+                        const originalText = btn.textContent;
+                        btn.textContent = 'Added to Cart!';
+                        btn.disabled = true;
+                        
+                        setTimeout(function() {
+                            btn.textContent = originalText;
+                            btn.disabled = false;
+                        }, 2000);
+                        
+                        // Update cart count if badge exists
+                        if ($('#cart-count').length) {
+                            $('#cart-count').text(response.cart_count).show();
+                        }
+                    } else {
+                        alert(response.message || 'Failed to add item to cart');
+                    }
+                },
+                error: function() {
+                    alert('Error adding item to cart');
+                }
+            });
         }
     </script>
 </body>
