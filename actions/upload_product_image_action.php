@@ -1,82 +1,70 @@
 <?php
+/**
+ * Upload Product Image Action
+ * Handles image uploads for products using ImageUploadHelper
+ */
+
+require_once __DIR__ . '/../classes/image_helper.php';
 require_once __DIR__ . '/../controllers/product_controller.php';
 require_once __DIR__ . '/../settings/core.php';
+
 session_start();
 header('Content-Type: application/json');
+
 $response = ['status' => 'error', 'message' => 'Invalid request'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isLoggedIn() || !isAdmin()) {
-        $response['message'] = 'Not authorized';
-        echo json_encode($response);
-        exit;
-    }
+// Check if user is logged in and is admin
+if (!isLoggedIn() || !isAdmin()) {
+    $response['message'] = 'Not authorized';
+    echo json_encode($response);
+    exit;
+}
 
-    if (!isset($_POST['product_id']) || !isset($_FILES['image'])) {
-        $response['message'] = 'Missing product id or image';
-        echo json_encode($response);
-        exit;
-    }
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $response['message'] = 'Invalid request method';
+    echo json_encode($response);
+    exit;
+}
 
-    $product_id = (int)$_POST['product_id'];
-    $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
-    if ($product_id <= 0 || $user_id <= 0) {
-        $response['message'] = 'Invalid ids';
-        echo json_encode($response);
-        exit;
-    }
+// Validate inputs
+if (!isset($_POST['product_id']) || !isset($_FILES['image'])) {
+    $response['message'] = 'Missing product ID or image file';
+    echo json_encode($response);
+    exit;
+}
 
-    $uploadsDir = __DIR__ . '/../uploads';
-    // ensure uploads dir exists
-    if (!is_dir($uploadsDir)) {
-        $response['message'] = 'Uploads directory missing on server';
-        echo json_encode($response);
-        exit;
-    }
+$productId = (int)$_POST['product_id'];
+$userId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 
-    // create user/product subfolders
-    $userDir = $uploadsDir . '/u' . $user_id;
-    $prodDir = $userDir . '/p' . $product_id;
-    if (!is_dir($userDir)) mkdir($userDir, 0755, true);
-    if (!is_dir($prodDir)) mkdir($prodDir, 0755, true);
+if ($productId <= 0 || $userId <= 0) {
+    $response['message'] = 'Invalid product ID or user ID';
+    echo json_encode($response);
+    exit;
+}
 
-    $file = $_FILES['image'];
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        $response['message'] = 'Upload error';
-        echo json_encode($response);
-        exit;
-    }
+// Upload image using helper class
+$imageHelper = new ImageUploadHelper();
+$uploadResult = $imageHelper->uploadProductImage($_FILES['image'], $productId, $userId);
 
-    $name = basename($file['name']);
-    // sanitize name
-    $ext = pathinfo($name, PATHINFO_EXTENSION);
-    $allowed = ['jpg','jpeg','png','gif'];
-    if (!in_array(strtolower($ext), $allowed)) {
-        $response['message'] = 'Invalid file type';
-        echo json_encode($response);
-        exit;
-    }
+if (!$uploadResult['success']) {
+    $response['message'] = $uploadResult['message'];
+    echo json_encode($response);
+    exit;
+}
 
-    $newName = 'img_' . time() . '_' . rand(1000,9999) . '.' . $ext;
-    $destPath = $prodDir . '/' . $newName;
+// Update product image in database
+$updateResult = update_product_ctr($productId, ['product_image' => $uploadResult['path']]);
 
-    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-        $response['message'] = 'Failed to move uploaded file';
-        echo json_encode($response);
-        exit;
-    }
-
-    // store relative path for DB (relative to project root)
-    $relPath = 'uploads/u' . $user_id . '/p' . $product_id . '/' . $newName;
-
-    // update product image field
-    $res = update_product_ctr($product_id, ['product_image' => $relPath]);
-    if ($res) {
-        $response = ['status' => 'success', 'path' => $relPath];
-    } else {
-        $response['message'] = 'Failed to update product image in DB';
-    }
+if ($updateResult) {
+    $response = [
+        'status' => 'success',
+        'message' => 'Product image uploaded successfully',
+        'path' => $uploadResult['path']
+    ];
+} else {
+    $response['message'] = 'Failed to update product image in database';
 }
 
 echo json_encode($response);
-echo json_encode($response);
+?>
+

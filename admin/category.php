@@ -35,8 +35,10 @@ if (!isLoggedIn() || !isAdmin()) {
 </head>
 <body>
     <div class="menu-tray">
+        <a href="../index.php" class="btn btn-sm btn-outline-info">Home</a>
+        <a href="category.php" class="btn btn-sm btn-outline-secondary">Categories</a>
         <a href="brand.php" class="btn btn-sm btn-outline-primary">Brands</a>
-    <a href="../view/product.php" class="btn btn-sm btn-outline-secondary">Products</a>
+        <a href="product.php" class="btn btn-sm btn-outline-primary">Products</a>
         <a href="../login/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
     </div>
 

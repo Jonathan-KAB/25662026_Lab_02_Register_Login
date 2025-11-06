@@ -42,4 +42,27 @@ function delete_brand_ctr($brand_id, $created_by)
     return $b->deleteBrand($brand_id, $created_by);
 }
 
+/**
+ * Controller: update brand image
+ * @param int $brand_id
+ * @param string $image_path
+ * @return bool
+ */
+function update_brand_image_ctr($brand_id, $image_path)
+{
+    $b = new Brand();
+    return $b->updateBrandImage($brand_id, $image_path);
+}
+
+/**
+ * Controller: get brand by ID
+ * @param int $brand_id
+ * @return array|false
+ */
+function get_brand_by_id_ctr($brand_id)
+{
+    $b = new Brand();
+    return $b->getBrandById($brand_id);
+}
+
 ?>

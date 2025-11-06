@@ -153,12 +153,16 @@ class User extends db_connection
      */
     public function updateUserProfile($user_id, $name, $email, $phone_number, $country, $city)
     {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
         $user_id = (int)$user_id;
-        $name = $this->escape_string($name);
-        $email = $this->escape_string($email);
-        $phone_number = $this->escape_string($phone_number);
-        $country = $this->escape_string($country);
-        $city = $this->escape_string($city);
+        $name = mysqli_real_escape_string($this->db, $name);
+        $email = mysqli_real_escape_string($this->db, $email);
+        $phone_number = mysqli_real_escape_string($this->db, $phone_number);
+        $country = mysqli_real_escape_string($this->db, $country);
+        $city = mysqli_real_escape_string($this->db, $city);
         
         $sql = "UPDATE customer 
                 SET customer_name = '$name', 
@@ -202,8 +206,12 @@ class User extends db_connection
      */
     public function updateUserImage($user_id, $image_path)
     {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
         $user_id = (int)$user_id;
-        $image_path = $this->escape_string($image_path);
+        $image_path = mysqli_real_escape_string($this->db, $image_path);
         
         $sql = "UPDATE customer SET customer_image = '$image_path' WHERE customer_id = $user_id";
         return $this->db_write_query($sql);
@@ -240,7 +248,11 @@ class User extends db_connection
      */
     public function getUsersByCountry($country)
     {
-        $country = $this->escape_string($country);
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
+        $country = mysqli_real_escape_string($this->db, $country);
         $sql = "SELECT * FROM customer WHERE customer_country = '$country' ORDER BY customer_name ASC";
         return $this->db_fetch_all($sql);
     }
@@ -252,7 +264,11 @@ class User extends db_connection
      */
     public function getUsersByCity($city)
     {
-        $city = $this->escape_string($city);
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
+        $city = mysqli_real_escape_string($this->db, $city);
         $sql = "SELECT * FROM customer WHERE customer_city = '$city' ORDER BY customer_name ASC";
         return $this->db_fetch_all($sql);
     }
@@ -264,7 +280,11 @@ class User extends db_connection
      */
     public function searchUsers($search_term)
     {
-        $search_term = $this->escape_string($search_term);
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
+        $search_term = mysqli_real_escape_string($this->db, $search_term);
         $sql = "SELECT * FROM customer 
                 WHERE customer_name LIKE '%$search_term%' 
                    OR customer_email LIKE '%$search_term%' 

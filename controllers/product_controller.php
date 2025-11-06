@@ -20,3 +20,60 @@ function get_product_ctr($product_id) {
     $p = new Product();
     return $p->getProductById($product_id);
 }
+
+// New controller functions for customer-facing product display
+
+function view_all_products_ctr($limit = 10, $offset = 0) {
+    $p = new Product();
+    return $p->view_all_products($limit, $offset);
+}
+
+function count_all_products_ctr() {
+    $p = new Product();
+    return $p->count_all_products();
+}
+
+function search_products_ctr($query, $limit = 10, $offset = 0) {
+    $p = new Product();
+    return $p->search_products($query, $limit, $offset);
+}
+
+function count_search_results_ctr($query) {
+    $p = new Product();
+    return $p->count_search_results($query);
+}
+
+function filter_products_by_category_ctr($cat_id, $limit = 10, $offset = 0) {
+    $p = new Product();
+    return $p->filter_products_by_category($cat_id, $limit, $offset);
+}
+
+function count_products_by_category_ctr($cat_id) {
+    $p = new Product();
+    return $p->count_products_by_category($cat_id);
+}
+
+function filter_products_by_brand_ctr($brand_id, $limit = 10, $offset = 0) {
+    $p = new Product();
+    return $p->filter_products_by_brand($brand_id, $limit, $offset);
+}
+
+function count_products_by_brand_ctr($brand_id) {
+    $p = new Product();
+    return $p->count_products_by_brand($brand_id);
+}
+
+function view_single_product_ctr($id) {
+    $p = new Product();
+    return $p->view_single_product($id);
+}
+
+function advanced_search_ctr($filters, $limit = 10, $offset = 0) {
+    $p = new Product();
+    return $p->advanced_search($filters, $limit, $offset);
+}
+
+function count_advanced_search_ctr($filters) {
+    $p = new Product();
+    return $p->count_advanced_search($filters);
+}

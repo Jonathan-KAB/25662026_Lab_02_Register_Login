@@ -65,4 +65,39 @@ class Brand extends db_connection
         $sql = "DELETE FROM brands WHERE brand_id = $brand_id AND created_by = $created_by";
         return $this->db_write_query($sql);
     }
+
+    /**
+     * Update brand image
+     * @param int $brand_id
+     * @param string $image_path
+     * @return bool
+     */
+    public function updateBrandImage($brand_id, $image_path)
+    {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        $brand_id = (int)$brand_id;
+        $image_path = mysqli_real_escape_string($this->db, trim($image_path));
+        
+        $sql = "UPDATE brands SET brand_image = '$image_path' WHERE brand_id = $brand_id";
+        return $this->db_write_query($sql);
+    }
+
+    /**
+     * Get brand with image
+     * @param int $brand_id
+     * @return array|false
+     */
+    public function getBrandById($brand_id)
+    {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        $brand_id = (int)$brand_id;
+        $sql = "SELECT b.*, c.cat_name FROM brands b 
+                LEFT JOIN categories c ON b.brand_cat = c.cat_id 
+                WHERE b.brand_id = $brand_id";
+        return $this->db_fetch_one($sql);
+    }
 }

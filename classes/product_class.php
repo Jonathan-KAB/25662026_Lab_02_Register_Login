@@ -79,6 +79,248 @@ class Product extends db_connection
                 WHERE p.product_id = $product_id LIMIT 1";
         return $this->db_fetch_one($sql);
     }
+
+    /**
+     * View all products with pagination support
+     * @param int $limit - Number of products per page (default: 10)
+     * @param int $offset - Offset for pagination (default: 0)
+     * @return array|false - Array of products or false on error
+     */
+    public function view_all_products($limit = 10, $offset = 0)
+    {
+        $limit = (int)$limit;
+        $offset = (int)$offset;
+        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+                LEFT JOIN categories c ON p.product_cat = c.cat_id 
+                LEFT JOIN brands b ON p.product_brand = b.brand_id
+                ORDER BY p.product_id DESC
+                LIMIT $limit OFFSET $offset";
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Get total count of all products
+     * @return int - Total number of products
+     */
+    public function count_all_products()
+    {
+        $sql = "SELECT COUNT(*) as total FROM products";
+        $result = $this->db_fetch_one($sql);
+        return $result ? (int)$result['total'] : 0;
+    }
+
+    /**
+     * Search products by query string (searches in title, description, and keywords)
+     * @param string $query - Search term
+     * @param int $limit - Number of results per page
+     * @param int $offset - Offset for pagination
+     * @return array|false - Array of matching products or false on error
+     */
+    public function search_products($query, $limit = 10, $offset = 0)
+    {
+        $query = $this->esc($query);
+        $limit = (int)$limit;
+        $offset = (int)$offset;
+        
+        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+                LEFT JOIN categories c ON p.product_cat = c.cat_id 
+                LEFT JOIN brands b ON p.product_brand = b.brand_id
+                WHERE p.product_title LIKE '%$query%' 
+                   OR p.product_desc LIKE '%$query%' 
+                   OR p.product_keywords LIKE '%$query%'
+                ORDER BY p.product_id DESC
+                LIMIT $limit OFFSET $offset";
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Count search results
+     * @param string $query - Search term
+     * @return int - Total number of matching products
+     */
+    public function count_search_results($query)
+    {
+        $query = $this->esc($query);
+        $sql = "SELECT COUNT(*) as total FROM products p 
+                WHERE p.product_title LIKE '%$query%' 
+                   OR p.product_desc LIKE '%$query%' 
+                   OR p.product_keywords LIKE '%$query%'";
+        $result = $this->db_fetch_one($sql);
+        return $result ? (int)$result['total'] : 0;
+    }
+
+    /**
+     * Filter products by category
+     * @param int $cat_id - Category ID
+     * @param int $limit - Number of results per page
+     * @param int $offset - Offset for pagination
+     * @return array|false - Array of products in the category or false on error
+     */
+    public function filter_products_by_category($cat_id, $limit = 10, $offset = 0)
+    {
+        $cat_id = (int)$cat_id;
+        $limit = (int)$limit;
+        $offset = (int)$offset;
+        
+        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+                LEFT JOIN categories c ON p.product_cat = c.cat_id 
+                LEFT JOIN brands b ON p.product_brand = b.brand_id
+                WHERE p.product_cat = $cat_id
+                ORDER BY p.product_id DESC
+                LIMIT $limit OFFSET $offset";
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Count products by category
+     * @param int $cat_id - Category ID
+     * @return int - Total number of products in category
+     */
+    public function count_products_by_category($cat_id)
+    {
+        $cat_id = (int)$cat_id;
+        $sql = "SELECT COUNT(*) as total FROM products WHERE product_cat = $cat_id";
+        $result = $this->db_fetch_one($sql);
+        return $result ? (int)$result['total'] : 0;
+    }
+
+    /**
+     * Filter products by brand
+     * @param int $brand_id - Brand ID
+     * @param int $limit - Number of results per page
+     * @param int $offset - Offset for pagination
+     * @return array|false - Array of products of the brand or false on error
+     */
+    public function filter_products_by_brand($brand_id, $limit = 10, $offset = 0)
+    {
+        $brand_id = (int)$brand_id;
+        $limit = (int)$limit;
+        $offset = (int)$offset;
+        
+        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+                LEFT JOIN categories c ON p.product_cat = c.cat_id 
+                LEFT JOIN brands b ON p.product_brand = b.brand_id
+                WHERE p.product_brand = $brand_id
+                ORDER BY p.product_id DESC
+                LIMIT $limit OFFSET $offset";
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Count products by brand
+     * @param int $brand_id - Brand ID
+     * @return int - Total number of products of the brand
+     */
+    public function count_products_by_brand($brand_id)
+    {
+        $brand_id = (int)$brand_id;
+        $sql = "SELECT COUNT(*) as total FROM products WHERE product_brand = $brand_id";
+        $result = $this->db_fetch_one($sql);
+        return $result ? (int)$result['total'] : 0;
+    }
+
+    /**
+     * View a single product (alias for getProductById for consistency)
+     * @param int $id - Product ID
+     * @return array|false - Product details or false on error
+     */
+    public function view_single_product($id)
+    {
+        return $this->getProductById($id);
+    }
+
+    /**
+     * Advanced search with multiple filters
+     * @param array $filters - Array containing 'query', 'category', 'brand', 'min_price', 'max_price'
+     * @param int $limit - Number of results per page
+     * @param int $offset - Offset for pagination
+     * @return array|false - Array of matching products or false on error
+     */
+    public function advanced_search($filters, $limit = 10, $offset = 0)
+    {
+        $limit = (int)$limit;
+        $offset = (int)$offset;
+        
+        $where = [];
+        
+        if (!empty($filters['query'])) {
+            $query = $this->esc($filters['query']);
+            $where[] = "(p.product_title LIKE '%$query%' OR p.product_desc LIKE '%$query%' OR p.product_keywords LIKE '%$query%')";
+        }
+        
+        if (!empty($filters['category'])) {
+            $cat_id = (int)$filters['category'];
+            $where[] = "p.product_cat = $cat_id";
+        }
+        
+        if (!empty($filters['brand'])) {
+            $brand_id = (int)$filters['brand'];
+            $where[] = "p.product_brand = $brand_id";
+        }
+        
+        if (!empty($filters['min_price'])) {
+            $min_price = (float)$filters['min_price'];
+            $where[] = "p.product_price >= $min_price";
+        }
+        
+        if (!empty($filters['max_price'])) {
+            $max_price = (float)$filters['max_price'];
+            $where[] = "p.product_price <= $max_price";
+        }
+        
+        $where_clause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        
+        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+                LEFT JOIN categories c ON p.product_cat = c.cat_id 
+                LEFT JOIN brands b ON p.product_brand = b.brand_id
+                $where_clause
+                ORDER BY p.product_id DESC
+                LIMIT $limit OFFSET $offset";
+        
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Count results for advanced search
+     * @param array $filters - Same filters as advanced_search
+     * @return int - Total number of matching products
+     */
+    public function count_advanced_search($filters)
+    {
+        $where = [];
+        
+        if (!empty($filters['query'])) {
+            $query = $this->esc($filters['query']);
+            $where[] = "(p.product_title LIKE '%$query%' OR p.product_desc LIKE '%$query%' OR p.product_keywords LIKE '%$query%')";
+        }
+        
+        if (!empty($filters['category'])) {
+            $cat_id = (int)$filters['category'];
+            $where[] = "p.product_cat = $cat_id";
+        }
+        
+        if (!empty($filters['brand'])) {
+            $brand_id = (int)$filters['brand'];
+            $where[] = "p.product_brand = $brand_id";
+        }
+        
+        if (!empty($filters['min_price'])) {
+            $min_price = (float)$filters['min_price'];
+            $where[] = "p.product_price >= $min_price";
+        }
+        
+        if (!empty($filters['max_price'])) {
+            $max_price = (float)$filters['max_price'];
+            $where[] = "p.product_price <= $max_price";
+        }
+        
+        $where_clause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        
+        $sql = "SELECT COUNT(*) as total FROM products p $where_clause";
+        $result = $this->db_fetch_one($sql);
+        return $result ? (int)$result['total'] : 0;
+    }
+
     /**
      * Return last DB error message (for debugging)
      */
