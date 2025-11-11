@@ -26,30 +26,73 @@ if (!empty($product['seller_id'])) {
     $db = new db_connection();
     $db->db_connect();
     
-    $seller_sql = "SELECT c.customer_id, c.customer_name, 
-                   sp.store_name, sp.store_logo, sp.rating_average, sp.verified
-                   FROM customer c
-                   LEFT JOIN seller_profiles sp ON c.customer_id = sp.seller_id
-                   WHERE c.customer_id = {$product['seller_id']}";
+    // Simple query - just get customer info
+    $seller_sql = "SELECT customer_id, customer_name, customer_email
+                   FROM customer
+                   WHERE customer_id = {$product['seller_id']}";
     
     $seller_info = $db->db_fetch_one($seller_sql);
+    
+    // Add default values for compatibility
+    if ($seller_info) {
+        $seller_info['store_name'] = null;
+        $seller_info['store_logo'] = null;
+        $seller_info['rating_average'] = 0;
+        $seller_info['verified'] = false;
+    }
 }
 
 // Fetch reviews for this product
 $db = new db_connection();
 $db->db_connect();
 
-$reviews_sql = "SELECT pr.*, 
-                c.customer_name,
-                DATE_FORMAT(pr.created_at, '%M %d, %Y') as review_date
-                FROM product_reviews pr
-                JOIN customer c ON pr.customer_id = c.customer_id
-                WHERE pr.product_id = $product_id 
-                AND pr.status = 'approved'
-                ORDER BY pr.created_at DESC";
+// Check if product_reviews table exists
+$check_table = $db->db_fetch_one("SHOW TABLES LIKE 'product_reviews'");
 
-$reviews = $db->db_fetch_all($reviews_sql);
-if ($reviews === false) {
+if ($check_table) {
+    // Table exists, fetch reviews
+    // First check what columns exist
+    $columns = $db->db_fetch_all("SHOW COLUMNS FROM product_reviews");
+    $has_created_at = false;
+    $has_status = false;
+    $has_verified = false;
+    $has_helpful = false;
+    $has_title = false;
+    
+    foreach ($columns as $col) {
+        if ($col['Field'] == 'created_at') $has_created_at = true;
+        if ($col['Field'] == 'status') $has_status = true;
+        if ($col['Field'] == 'verified_purchase') $has_verified = true;
+        if ($col['Field'] == 'helpful_count') $has_helpful = true;
+        if ($col['Field'] == 'review_title') $has_title = true;
+    }
+    
+    // Build query based on available columns
+    $date_field = $has_created_at ? "DATE_FORMAT(pr.created_at, '%M %d, %Y')" : "DATE_FORMAT(pr.review_date, '%M %d, %Y')";
+    $status_filter = $has_status ? "AND pr.status = 'approved'" : "";
+    
+    $reviews_sql = "SELECT pr.*, 
+                    c.customer_name,
+                    $date_field as review_date
+                    FROM product_reviews pr
+                    JOIN customer c ON pr.customer_id = c.customer_id
+                    WHERE pr.product_id = $product_id 
+                    $status_filter
+                    ORDER BY pr.review_date DESC";
+    
+    $reviews = $db->db_fetch_all($reviews_sql);
+    if ($reviews === false) {
+        $reviews = [];
+    }
+    
+    // Add default values for missing columns
+    foreach ($reviews as &$review) {
+        if (!$has_verified) $review['verified_purchase'] = false;
+        if (!$has_helpful) $review['helpful_count'] = 0;
+        if (!$has_title) $review['review_title'] = '';
+    }
+} else {
+    // Table doesn't exist yet
     $reviews = [];
 }
 
@@ -62,14 +105,14 @@ foreach ($reviews as $review) {
     if (isset($review['rating']) && $review['rating'] >= 1 && $review['rating'] <= 5) {
         $rating_breakdown[(int)$review['rating']]++;
     }
-    if ($review['verified_purchase']) {
+    if (isset($review['verified_purchase']) && $review['verified_purchase']) {
         $verified_count++;
     }
 }
 
 // Check if user has already reviewed this product
 $has_reviewed = false;
-if (isset($_SESSION['customer_id'])) {
+if (isset($_SESSION['customer_id']) && $check_table) {
     $check_sql = "SELECT review_id FROM product_reviews 
                   WHERE product_id = $product_id 
                   AND customer_id = {$_SESSION['customer_id']}";
@@ -702,18 +745,26 @@ if (isset($_SESSION['customer_id'])) {
                 <div class="main-product-image">
                     <?php if (!empty($product['product_image'])): ?>
                         <?php 
-                        // Handle both /uploads and uploads paths
+                        // Handle image paths for both local XAMPP and Ashesi server
                         $imagePath = $product['product_image'];
-                        if (strpos($imagePath, '/') === 0) {
-                            // Absolute path from root (school server)
+                        
+                        // If path already starts with /uploads (absolute from root)
+                        if (strpos($imagePath, '/uploads') === 0) {
+                            // Ashesi server - uploads is at root level
                             echo '<img src="' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['product_title']) . '">';
-                        } else {
-                            // Relative path (local XAMPP)
+                        } 
+                        // If path starts with uploads/ (relative)
+                        elseif (strpos($imagePath, 'uploads/') === 0) {
+                            // Use absolute path from root for Ashesi server
+                            echo '<img src="/' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['product_title']) . '">';
+                        }
+                        // Otherwise relative path from view folder
+                        else {
                             echo '<img src="../' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['product_title']) . '">';
                         }
                         ?>
                     <?php else: ?>
-                        <img src="../uploads/placeholder.jpg" 
+                        <img src="/uploads/placeholder.jpg" 
                              alt="Product placeholder"
                              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22500%22 height=%22500%22%3E%3Crect fill=%22%23ddd%22 width=%22500%22 height=%22500%22/%3E%3Ctext fill=%22%23999%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2224%22%3ENo Image Available%3C/text%3E%3C/svg%3E'">
                     <?php endif; ?>
@@ -736,9 +787,27 @@ if (isset($_SESSION['customer_id'])) {
                 <div class="product-seller">
                     <div class="seller-content">
                         <?php if (!empty($seller_info['store_logo'])): ?>
-                            <img src="../uploads/<?= htmlspecialchars($seller_info['store_logo']) ?>" 
+                            <?php
+                            // Handle seller logo path for Ashesi server
+                            $logoPath = $seller_info['store_logo'];
+                            if (strpos($logoPath, '/uploads') === 0) {
+                                // Already absolute path
+                                $logoSrc = htmlspecialchars($logoPath);
+                            } elseif (strpos($logoPath, 'uploads/') === 0) {
+                                // Make absolute from root
+                                $logoSrc = '/' . htmlspecialchars($logoPath);
+                            } else {
+                                // Assume it's just a filename
+                                $logoSrc = '/uploads/' . htmlspecialchars($logoPath);
+                            }
+                            ?>
+                            <img src="<?= $logoSrc ?>" 
                                  alt="Vendor Logo" 
-                                 class="seller-logo">
+                                 class="seller-logo"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="seller-avatar" style="display: none;">
+                                <?= strtoupper(substr($seller_info['customer_name'], 0, 1)) ?>
+                            </div>
                         <?php else: ?>
                             <div class="seller-avatar">
                                 <?= strtoupper(substr($seller_info['customer_name'], 0, 1)) ?>
@@ -923,7 +992,7 @@ if (isset($_SESSION['customer_id'])) {
                                 <div class="reviewer-details">
                                     <h4>
                                         <?= htmlspecialchars($review['customer_name']) ?>
-                                        <?php if ($review['verified_purchase']): ?>
+                                        <?php if (isset($review['verified_purchase']) && $review['verified_purchase']): ?>
                                             <span class="verified-badge">✓ Verified Purchase</span>
                                         <?php endif; ?>
                                     </h4>
@@ -941,7 +1010,7 @@ if (isset($_SESSION['customer_id'])) {
                             </div>
                         </div>
 
-                        <?php if (!empty($review['review_title'])): ?>
+                        <?php if (isset($review['review_title']) && !empty($review['review_title'])): ?>
                             <div class="review-title"><?= htmlspecialchars($review['review_title']) ?></div>
                         <?php endif; ?>
 
@@ -949,7 +1018,7 @@ if (isset($_SESSION['customer_id'])) {
                             <?= nl2br(htmlspecialchars($review['review_text'])) ?>
                         </div>
 
-                        <?php if ($review['helpful_count'] > 0): ?>
+                        <?php if (isset($review['helpful_count']) && $review['helpful_count'] > 0): ?>
                             <div style="font-size: 13px; color: #666;">
                                 <?= $review['helpful_count'] ?> person<?= $review['helpful_count'] != 1 ? 's' : '' ?> found this helpful
                             </div>
