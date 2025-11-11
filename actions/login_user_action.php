@@ -1,8 +1,8 @@
 <?php
+require_once '../settings/core.php';
+require_once '../controllers/customer_controller.php';
 
 header('Content-Type: application/json');
-
-session_start();
 
 $response = array();
 
@@ -13,8 +13,6 @@ if (isset($_SESSION['user_id'])) {
     echo json_encode($response);
     exit();
 }
-
-require_once '../controllers/customer_controller.php';
 
 $email = $_POST['email'];
 $password = $_POST['password'];
@@ -34,15 +32,31 @@ $user = authenticate_user_ctr($email, $password);
 
 if ($user) {
     $_SESSION['user_id'] = $user['customer_id'];
+    $_SESSION['customer_id'] = $user['customer_id'];
     $_SESSION['user_name'] = $user['customer_name'];
+    $_SESSION['customer_name'] = $user['customer_name'];
     $_SESSION['user_email'] = $user['customer_email'];
     $_SESSION['user_role'] = $user['user_role'];
+    
+    // Debug logging
+    error_log("Login successful - Session ID: " . session_id());
+    error_log("Login successful - user_id set to: " . $_SESSION['user_id']);
+    error_log("Login successful - Session data: " . print_r($_SESSION, true));
 
     $response['status'] = 'success';
     $response['message'] = 'Login successful';
-    // If admin, send redirect URL (relative path for subfolder support)
+    $response['session_id'] = session_id(); // Debug
+    
+    // Role-based redirects
     if ($user['user_role'] == 2) {
+        // Admin -> Admin panel
         $response['redirect'] = '../admin/category.php';
+    } elseif ($user['user_role'] == 3) {
+        // Seller -> Seller dashboard
+        $response['redirect'] = '../view/seller_dashboard.php';
+    } else {
+        // Buyer -> User dashboard
+        $response['redirect'] = '../view/dashboard.php';
     }
 } else {
     $response['status'] = 'error';

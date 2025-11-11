@@ -49,7 +49,7 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Results - E-Commerce Store</title>
+    <title>Search Results - SeamLink</title>
     <link rel="stylesheet" href="../css/app.css">
     <style>
         * {
@@ -639,9 +639,38 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
     </div>
 
     <script>
-        // Add to cart functionality (placeholder for now)
+        // Add to cart functionality
         function addToCart(productId) {
-            alert('Add to cart functionality will be implemented in the next lab.\nProduct ID: ' + productId);
+            $.ajax({
+                url: '../actions/add_to_cart_action.php',
+                method: 'POST',
+                data: {
+                    product_id: productId,
+                    quantity: 1
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('Item added to cart successfully!');
+                        // Update cart count if you have a cart badge
+                        if ($('#cart-count').length) {
+                            $('#cart-count').text(response.cart_count).show();
+                        }
+                    } else {
+                        // Check if redirect is needed (not logged in)
+                        if (response.redirect) {
+                            if (confirm(response.message + '. Redirect to login page?')) {
+                                window.location.href = response.redirect;
+                            }
+                        } else {
+                            alert(response.message || 'Failed to add item to cart');
+                        }
+                    }
+                },
+                error: function() {
+                    alert('Error adding item to cart');
+                }
+            });
         }
     </script>
 </body>

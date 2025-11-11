@@ -3,225 +3,355 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Example Register Page</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Register - SeamLink</title>
+    <link rel="stylesheet" href="../css/app.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
-        .btn-custom {
-            background-color: #ccd8d2;
-            border-color: #ccd8d2;
-            color: #fff;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        .btn-custom:hover {
-            background-color: #00563b;
-            border-color: #00563b;
-        }
-
-        .highlight {
-            color: #ccd8d2;
-            transition: color 0.3s;
-        }
-
-        .highlight:hover {
-            color: #00563b;
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            /* Base background color */
-            background-color: #f8f9fa;
-
-            /* Gradient-like grid using repeating-linear-gradients */
-            background-image:
-                repeating-linear-gradient(0deg,
-                    #00563b,
-                    #00563b 1px,
-                    transparent 1px,
-                    transparent 20px),
-                repeating-linear-gradient(90deg,
-                    #00563b,
-                    #00563b 1px,
-                    transparent 1px,
-                    transparent 20px),
-                linear-gradient(rgba(183, 122, 122, 0.1),
-                    rgba(183, 122, 122, 0.1));
-
-            /* Blend the gradients for a subtle overlay effect */
-            background-blend-mode: overlay;
-
-            /* Define the size of the grid */
-            background-size: 20px 20px;
-
-            /* Ensure the background covers the entire viewport */
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
+            padding: 20px;
+            font-family: 'Elms Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .register-container {
-            margin-top: 50px;
+        .register-wrapper {
+            width: 100%;
+            max-width: 580px;
+            margin: 0 auto;
         }
 
-        .card {
-            border: none;
-            border-radius: 15px;
+        .register-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.6s ease-out;
         }
 
-        .card-header {
-            background-color: #ccd8d2;
-            color: #fff;
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .custom-radio .form-check-input:checked+.form-check-label::before {
-            background-color: #ccd8d2;
-            border-color: #ccd8d2;
+        .register-header {
+            background: linear-gradient(135deg, #198754 0%, #157347 100%);
+            padding: 20px;
+            text-align: center;
+            color: white;
         }
 
-        .form-check-label {
-            position: relative;
-            padding-left: 2rem;
+        .register-header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 4px 0;
+            color: white;
+        }
+
+        .register-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 13px;
+        }
+
+        .register-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #2d3748;
+        }
+
+        .form-group label i {
+            margin-right: 6px;
+            color: #198754;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #198754;
+            box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-family: inherit;
+            background: white;
             cursor: pointer;
         }
 
-        .form-check-label::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid #ccd8d2;
-            border-radius: 50%;
-            background-color: #fff;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        .form-check-input:focus+.form-check-label::before {
-            box-shadow: 0 0 0 0.2rem rgba(209, 156, 151, 0.5);
-        }
-
-        .animate-pulse-custom {
-            animation: pulse 2s infinite;
-        }
-
-        /* Custom styling for select dropdown */
-        .form-select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 16px 12px;
-            appearance: none;
-        }
-
         .form-select:focus {
-            border-color: #ccd8d2;
-            box-shadow: 0 0 0 0.2rem rgba(204, 216, 210, 0.25);
+            outline: none;
+            border-color: #198754;
+            box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
         }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
+        .role-selection {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .role-option {
+            flex: 1;
+            position: relative;
+        }
+
+        .role-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .role-label {
+            display: block;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .role-label i {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 6px;
+            color: #198754;
+        }
+
+        .role-option input[type="radio"]:checked + .role-label {
+            border-color: #198754;
+            background: rgba(25, 135, 84, 0.05);
+        }
+
+        .role-label:hover {
+            border-color: #198754;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #198754 0%, #157347 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 6px;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25, 135, 84, 0.3);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .register-footer {
+            padding: 16px;
+            background: #f7fafc;
+            text-align: center;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .register-footer a {
+            color: #198754;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .register-footer a:hover {
+            color: #157347;
+            text-decoration: underline;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .brand-badge i {
+            font-size: 18px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
             }
 
-            50% {
-                transform: scale(1.05);
+            .register-header {
+                padding: 20px 15px;
             }
 
-            100% {
-                transform: scale(1);
+            .register-body {
+                padding: 20px 15px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .role-selection {
+                flex-direction: column;
+            }
+
+            .register-footer {
+                padding: 15px;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="container register-container">
-        <div class="row justify-content-center animate__animated animate__fadeInDown">
-            <div class="col-md-6">
-                <div class="card animate__animated animate__zoomIn">
-                    <div class="card-header text-center highlight">
-                        <h4>Register</h4>
-                    </div>
-                    <div class="card-body">
-                        <form method="POST" action="../actions/register_action.php" class="mt-4" id="register-form">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Name <i class="fa fa-user"></i></label>
-                                <input type="text" class="form-control animate__animated animate__fadeInUp" id="name" name="name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email <i class="fa fa-envelope"></i></label>
-                                <input type="email" class="form-control animate__animated animate__fadeInUp" id="email" name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password <i class="fa fa-lock"></i></label>
-                                <input type="password" class="form-control animate__animated animate__fadeInUp" id="password" name="password" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="phone_number" class="form-label">Phone Number <i class="fa fa-phone"></i></label>
-                                <input type="text" class="form-control animate__animated animate__fadeInUp" id="phone_number" name="phone_number" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="country" class="form-label">Country <i class="fa fa-globe"></i></label>
-                                <select class="form-select animate__animated animate__fadeInUp" id="country" name="country" required>
-                                    <option value="" disabled selected>Select your country</option>
-                                    <option value="Ghana">Ghana</option>
-                                    <option value="Nigeria">Nigeria</option>
-                                    <option value="Kenya">Kenya</option>
-                                    <option value="South Africa">South Africa</option>
-                                    <option value="Egypt">Egypt</option>
-                                    <option value="Morocco">Morocco</option>
-                                    <option value="Tanzania">Tanzania</option>
-                                    <option value="Uganda">Uganda</option>
-                                    <option value="Ethiopia">Ethiopia</option>
-                                    <option value="Cameroon">Cameroon</option>
-                                    <option value="Ivory Coast">Ivory Coast</option>
-                                    <option value="Senegal">Senegal</option>
-                                    <option value="Zimbabwe">Zimbabwe</option>
-                                    <option value="Zambia">Zambia</option>
-                                    <option value="Botswana">Botswana</option>
-                                    <option value="Namibia">Namibia</option>
-                                    <option value="Mauritius">Mauritius</option>
-                                    <option value="Rwanda">Rwanda</option>
-                                    <option value="Malawi">Malawi</option>
-                                    <option value="Mozambique">Mozambique</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="city" class="form-label">City <i class="fa fa-map-marker-alt"></i></label>
-                                <input type="text" class="form-control animate__animated animate__fadeInUp" id="city" name="city" required>
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label">Register As</label>
-                                <div class="d-flex justify-content-start">
-                                    <div class="form-check me-3 custom-radio">
-                                        <input class="form-check-input" type="radio" name="role" id="customer" value="1" checked>
-                                        <label class="form-check-label" for="customer">Customer</label>
-                                    </div>
-                                    <div class="form-check custom-radio">
-                                        <input class="form-check-input" type="radio" name="role" id="owner" value="2">
-                                        <label class="form-check-label" for="owner">Restaurant Owner</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-custom w-100 animate-pulse-custom">Register</button>
-                        </form>
-                    </div>
-                    <div class="card-footer text-center">
-                        Already have an account? <a href="login.php" class="highlight">Login here</a>.
-                    </div>
+    <div class="register-wrapper">
+        <div class="register-card">
+            <div class="register-header">
+                <div class="brand-badge">
+                    <i class="fas fa-cut"></i>
+                    <h1>SeamLink</h1>
                 </div>
+                <p>Join Ghana's premier fashion marketplace</p>
+            </div>
+            <div class="register-body">
+                <form method="POST" action="../actions/register_user_action.php" id="register-form">
+                    <div class="form-group">
+                        <label for="name">
+                            <i class="fas fa-user"></i> Full Name
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Create a strong password" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone_number">
+                                <i class="fas fa-phone"></i> Phone Number
+                            </label>
+                            <input type="text" class="form-control" id="phone_number" name="phone_number" placeholder="+233 000 000 000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="country">
+                                <i class="fas fa-globe"></i> Country
+                            </label>
+                            <select class="form-select" id="country" name="country" required>
+                                <option value="" disabled selected>Select country</option>
+                                <option value="Ghana">Ghana</option>
+                                <option value="Nigeria">Nigeria</option>
+                                <option value="Kenya">Kenya</option>
+                                <option value="South Africa">South Africa</option>
+                                <option value="Egypt">Egypt</option>
+                                <option value="Morocco">Morocco</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">
+                            <i class="fas fa-map-marker-alt"></i> City
+                        </label>
+                        <input type="text" class="form-control" id="city" name="city" placeholder="Enter your city" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-user-tag"></i> Register As
+                        </label>
+                        <div class="role-selection">
+                            <div class="role-option">
+                                <input type="radio" name="role" id="customer" value="1" checked>
+                                <label for="customer" class="role-label">
+                                    <i class="fas fa-shopping-bag"></i>
+                                    Customer
+                                </label>
+                            </div>
+                            <div class="role-option">
+                                <input type="radio" name="role" id="seller" value="3">
+                                <label for="seller" class="role-label">
+                                    <i class="fas fa-store"></i>
+                                    Vendor
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-register">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+            </div>
+            <div class="register-footer">
+                Already have an account? <a href="login.php">Login here</a>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/register.js"></script>

@@ -1,6 +1,6 @@
 <?php
 
-require_once '../classes/customer_class.php';
+require_once '../classes/user_class.php';
 
 // added country and city parameters
 function register_user_ctr($name, $email, $password, $phone_number, $country, $city, $role)
@@ -31,6 +31,20 @@ function authenticate_user_ctr($email, $password)
 {
     $user = new User();
     return $user->authenticateUser($email, $password);
+}
+
+// get customer by ID
+function get_customer_by_id_ctr($customerId)
+{
+    $user = new User();
+    return $user->getCustomerById($customerId);
+}
+
+// update customer profile
+function update_customer_ctr($customerId, $name, $contact, $country, $city)
+{
+    $user = new User();
+    return $user->updateCustomer($customerId, $name, $contact, $country, $city);
 }
 
 ?>

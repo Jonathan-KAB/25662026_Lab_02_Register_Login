@@ -64,4 +64,28 @@ class User extends db_connection
         return $stmt->get_result()->fetch_assoc();
     }
 
+    public function authenticateUser($email, $password)
+    {
+        $user = $this->getUserByEmail($email);
+        if ($user && password_verify($password, $user['customer_pass'])) {
+            return $user;
+        }
+        return false;
+    }
+
+    public function getCustomerById($customerId)
+    {
+        $stmt = $this->db->prepare("SELECT * FROM customer WHERE customer_id = ?");
+        $stmt->bind_param("i", $customerId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    public function updateCustomer($customerId, $name, $contact, $country, $city)
+    {
+        $stmt = $this->db->prepare("UPDATE customer SET customer_name = ?, customer_contact = ?, customer_country = ?, customer_city = ? WHERE customer_id = ?");
+        $stmt->bind_param("ssssi", $name, $contact, $country, $city, $customerId);
+        return $stmt->execute();
+    }
+
 }

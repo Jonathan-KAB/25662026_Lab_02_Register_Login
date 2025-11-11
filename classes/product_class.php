@@ -90,7 +90,10 @@ class Product extends db_connection
     {
         $limit = (int)$limit;
         $offset = (int)$offset;
-        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+        $sql = "SELECT p.*, c.cat_name, b.brand_name,
+                COALESCE(p.rating_average, 0) as rating_average,
+                COALESCE(p.rating_count, 0) as rating_count
+                FROM products p 
                 LEFT JOIN categories c ON p.product_cat = c.cat_id 
                 LEFT JOIN brands b ON p.product_brand = b.brand_id
                 ORDER BY p.product_id DESC
@@ -122,7 +125,10 @@ class Product extends db_connection
         $limit = (int)$limit;
         $offset = (int)$offset;
         
-        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+        $sql = "SELECT p.*, c.cat_name, b.brand_name,
+                COALESCE(p.rating_average, 0) as rating_average,
+                COALESCE(p.rating_count, 0) as rating_count
+                FROM products p 
                 LEFT JOIN categories c ON p.product_cat = c.cat_id 
                 LEFT JOIN brands b ON p.product_brand = b.brand_id
                 WHERE p.product_title LIKE '%$query%' 
@@ -162,7 +168,10 @@ class Product extends db_connection
         $limit = (int)$limit;
         $offset = (int)$offset;
         
-        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+        $sql = "SELECT p.*, c.cat_name, b.brand_name,
+                COALESCE(p.rating_average, 0) as rating_average,
+                COALESCE(p.rating_count, 0) as rating_count
+                FROM products p 
                 LEFT JOIN categories c ON p.product_cat = c.cat_id 
                 LEFT JOIN brands b ON p.product_brand = b.brand_id
                 WHERE p.product_cat = $cat_id
@@ -197,7 +206,10 @@ class Product extends db_connection
         $limit = (int)$limit;
         $offset = (int)$offset;
         
-        $sql = "SELECT p.*, c.cat_name, b.brand_name FROM products p 
+        $sql = "SELECT p.*, c.cat_name, b.brand_name,
+                COALESCE(p.rating_average, 0) as rating_average,
+                COALESCE(p.rating_count, 0) as rating_count
+                FROM products p 
                 LEFT JOIN categories c ON p.product_cat = c.cat_id 
                 LEFT JOIN brands b ON p.product_brand = b.brand_id
                 WHERE p.product_brand = $brand_id
@@ -335,6 +347,62 @@ class Product extends db_connection
     public function getLastQuery()
     {
         return $this->last_query;
+    }
+
+    // Get products by seller
+    public function getProductsBySeller($seller_id)
+    {
+        $conn = $this->db_connect();
+        if (!$conn) return [];
+        
+        $seller_id = (int)$seller_id;
+        
+        $sql = "SELECT p.*, c.cat_name, b.brand_name 
+                FROM products p
+                LEFT JOIN categories c ON p.product_cat = c.cat_id
+                LEFT JOIN brands b ON p.product_brand = b.brand_id
+                WHERE p.seller_id = $seller_id
+                ORDER BY p.product_id DESC";
+        
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Filter products by type (fabric or service)
+     * @param string $type - Product type ('fabric' or 'service')
+     * @param int $limit - Number of results per page
+     * @param int $offset - Offset for pagination
+     * @return array|false - Array of products or false on error
+     */
+    public function filter_products_by_type($type, $limit = 10, $offset = 0)
+    {
+        $type = $this->esc($type);
+        $limit = (int)$limit;
+        $offset = (int)$offset;
+        
+        $sql = "SELECT p.*, c.cat_name, b.brand_name,
+                COALESCE(p.rating_average, 0) as rating_average,
+                COALESCE(p.rating_count, 0) as rating_count
+                FROM products p 
+                LEFT JOIN categories c ON p.product_cat = c.cat_id 
+                LEFT JOIN brands b ON p.product_brand = b.brand_id
+                WHERE p.product_type = '$type'
+                ORDER BY p.product_id DESC
+                LIMIT $limit OFFSET $offset";
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Count products by type
+     * @param string $type - Product type ('fabric' or 'service')
+     * @return int - Total number of products of that type
+     */
+    public function count_products_by_type($type)
+    {
+        $type = $this->esc($type);
+        $sql = "SELECT COUNT(*) as total FROM products WHERE product_type = '$type'";
+        $result = $this->db_fetch_one($sql);
+        return $result ? (int)$result['total'] : 0;
     }
 
 }

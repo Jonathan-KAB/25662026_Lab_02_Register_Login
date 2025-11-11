@@ -14,24 +14,20 @@ if (!isLoggedIn() || !isAdmin()) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Brand Management</title>
+    <title>Brand Management - SeamLink Admin</title>
     <link href="../css/app.css" rel="stylesheet">
 </head>
 <body>
-    <div class="menu-tray">
-        <a href="../index.php" class="btn btn-sm btn-outline-info">Home</a>
-        <a href="category.php" class="btn btn-sm btn-outline-primary">Categories</a>
-        <a href="brand.php" class="btn btn-sm btn-outline-secondary">Brands</a>
-        <a href="product.php" class="btn btn-sm btn-outline-primary">Products</a>
-        <a href="../login/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
+    <?php include __DIR__ . '/includes/admin_menu.php'; ?>
+
+    <div class="page-header">
+        <div class="container">
+            <h1>Brand Management</h1>
+            <p>Manage your product brands</p>
+        </div>
     </div>
 
-    <div class="container" style="padding-top:100px;">
-        <div class="text-center mb-4">
-            <h1>Brand Management</h1>
-            <p class="text-muted">Manage your product brands</p>
-        </div>
-
+    <div class="container" style="margin-top: 40px; margin-bottom: 60px;">
         <div class="card mb-4">
                 <div class="card-header">Add New Brand</div>
                 <div class="card-body">

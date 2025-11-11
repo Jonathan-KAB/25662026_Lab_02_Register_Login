@@ -12,8 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Auth check
-if (!isLoggedIn() || !isAdmin()) {
+// Auth check - Allow admin or seller
+if (!isLoggedIn() || (!isAdmin() && $_SESSION['user_role'] != 3)) {
     $response['message'] = 'Not authorized';
     echo json_encode($response);
     exit;
@@ -51,6 +51,11 @@ $data['product_title'] = $title;
 $data['product_price'] = isset($_POST['product_price']) ? (float)$_POST['product_price'] : 0;
 $data['product_desc'] = isset($_POST['product_desc']) ? trim($_POST['product_desc']) : '';
 $data['product_keywords'] = isset($_POST['product_keywords']) ? trim($_POST['product_keywords']) : '';
+
+// Add seller_id if user is a seller
+if ($_SESSION['user_role'] == 3) {
+    $data['seller_id'] = $_SESSION['customer_id'];
+}
 
 // attempt insert and include DB error when available
 $id = add_product_ctr($data);

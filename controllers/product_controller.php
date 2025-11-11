@@ -77,3 +77,19 @@ function count_advanced_search_ctr($filters) {
     $p = new Product();
     return $p->count_advanced_search($filters);
 }
+
+function get_products_by_seller_ctr($seller_id) {
+    $p = new Product();
+    return $p->getProductsBySeller($seller_id);
+}
+
+function filter_products_by_type_ctr($type, $limit = 10, $offset = 0) {
+    $p = new Product();
+    return $p->filter_products_by_type($type, $limit, $offset);
+}
+
+function count_products_by_type_ctr($type) {
+    $p = new Product();
+    return $p->count_products_by_type($type);
+}
+

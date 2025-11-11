@@ -35,12 +35,14 @@
 		<?php endif; ?>
 	</div>
 
-	<div class="container" style="padding-top:120px; max-width:1100px;">
-		<div class="text-center mb-4">
+	<div class="page-header">
+		<div class="container">
 			<h1>Products</h1>
-			<p class="text-muted">Browse products by category and brand</p>
+			<p>Browse products by category and brand</p>
 		</div>
+	</div>
 
+	<div class="container" style="margin-top: 40px; margin-bottom: 60px; max-width:1100px;">
 		<div id="products" class="row g-3"></div>
 	</div>
 

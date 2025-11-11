@@ -7,11 +7,18 @@ session_start();
 require_once __DIR__ . '/../controllers/cart_controller.php';
 require_once __DIR__ . '/../settings/core.php';
 
+// Require login to view cart
+if (!isset($_SESSION['customer_id'])) {
+    header('Location: ../login/login.php');
+    exit;
+}
+
 $ipAddress = $_SERVER['REMOTE_ADDR'];
-$customerId = isset($_SESSION['customer_id']) ? (int)$_SESSION['customer_id'] : null;
+$customerId = (int)$_SESSION['customer_id'];
 
 $cartItems = get_cart_items_ctr($ipAddress, $customerId);
 $cartTotal = get_cart_total_ctr($ipAddress, $customerId);
+$cartCount = count($cartItems);
 ?>
 
 <!DOCTYPE html>
@@ -19,30 +26,20 @@ $cartTotal = get_cart_total_ctr($ipAddress, $customerId);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart</title>
+    <title>Shopping Cart - SeamLink</title>
     <link rel="stylesheet" href="../css/app.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <div class="menu-tray">
-        <a href="../index.php" class="btn btn-sm btn-outline-secondary">Home</a>
-        <a href="all_product.php" class="btn btn-sm btn-outline-secondary">Products</a>
-        <a href="cart.php" class="btn btn-sm btn-primary">
-            Cart <span id="cart-count" class="cart-badge"><?= count($cartItems) ?></span>
-        </a>
-        <?php if (isLoggedIn()): ?>
-            <a href="../login/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
-        <?php else: ?>
-            <a href="../login/login.php" class="btn btn-sm btn-outline-primary">Login</a>
-        <?php endif; ?>
-    </div>
+    <?php include __DIR__ . '/includes/menu.php'; ?>
 
-    <div class="container">
-        <div class="page-header">
+    <div class="page-header">
+        <div class="container">
             <h1>Shopping Cart</h1>
             <p>Review your items before checkout</p>
         </div>
+    </div>
 
+    <div class="container">
         <?php if (empty($cartItems)): ?>
             <div class="card">
                 <div class="card-body" style="text-align: center; padding: 60px 20px;">
@@ -104,9 +101,9 @@ $cartTotal = get_cart_total_ctr($ipAddress, $customerId);
                                 <span>Total</span>
                                 <span id="total">GH₵ <?= number_format($cartTotal, 2) ?></span>
                             </div>
-                            <button class="btn btn-primary btn-block" onclick="proceedToCheckout()">
+                            <a href="checkout.php" class="btn btn-primary btn-block" style="text-align: center; display: block; text-decoration: none;">
                                 Proceed to Checkout
-                            </button>
+                            </a>
                             <a href="all_product.php" class="btn btn-outline-secondary btn-block" style="margin-top: 12px;">
                                 Continue Shopping
                             </a>

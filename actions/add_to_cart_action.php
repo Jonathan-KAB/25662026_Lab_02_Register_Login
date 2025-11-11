@@ -17,6 +17,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Check if user is logged in
+if (!isset($_SESSION['customer_id'])) {
+    $response = [
+        'status' => 'error',
+        'message' => 'Please login to add items to cart',
+        'redirect' => '../login/login.php'
+    ];
+    echo json_encode($response);
+    exit;
+}
+
 // Get product ID and quantity
 $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
 $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
@@ -34,10 +45,10 @@ if ($quantity <= 0) {
 // Get IP address
 $ipAddress = $_SERVER['REMOTE_ADDR'];
 
-// Get customer ID if logged in
-$customerId = isset($_SESSION['customer_id']) ? (int)$_SESSION['customer_id'] : null;
+// Get customer ID (now guaranteed to be set)
+$customerId = (int)$_SESSION['customer_id'];
 
-// Add to cart
+// Add to cart - using customer ID as primary identifier
 $result = add_to_cart_ctr($productId, $ipAddress, $customerId, $quantity);
 
 if ($result) {

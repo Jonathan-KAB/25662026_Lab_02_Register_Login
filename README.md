@@ -1,18 +1,258 @@
-# Login and Register Pages (Lab 2)
+# SeamLink - Ghanaian Fashion & Tailoring Marketplace
 
-Test Customer Email: testuser@test.com <br>
-Password: testpass2A,
+**SeamLink** is a comprehensive digital marketplace connecting customers with master tailors, seamstresses, and authentic fabric vendors across Ghana. Built with PHP/MySQL, it features custom tailoring services, fabric shopping, reviews, seller profiles, and order management.
 
-Test Admin Email: testadmin@test.com <br>
-Password:testpass1A,
+## 🌟 Features
 
-<br>
-Expected result should be a "login successful" pop up, revert if not working
+### For Customers
+- **Find Tailors & Seamstresses** - Browse verified master tailors with ratings and portfolios
+- **Shop Authentic Fabrics** - Discover local and international fabrics from trusted vendors
+- **Custom Orders** - Commission bespoke clothing with detailed specifications
+- **Review System** - Read and write reviews with 5-star ratings for tailors and fabrics
+- **Tailor Profiles** - View artisan storefronts with ratings and completed work
+- **Order Tracking** - Monitor your custom orders from consultation to delivery
+- **Shopping Cart** - Purchase fabrics and materials easily
+- **Wishlist** - Save favorite fabrics and tailors for later
 
-<br>
-If you're already logged in, it holds the session
+### For Tailors & Seamstresses (User Role 3)
+- **Professional Storefront** - Showcase your skills with custom profile and portfolio
+- **Manage Orders** - Accept and track custom tailoring commissions
+- **Fabric Listings** - Sell fabrics alongside tailoring services
+- **Client Communication** - Connect directly with customers about their vision
+- **Rating & Reviews** - Build reputation through customer feedback
+- **Business Analytics** - Track orders, ratings, and customer satisfaction
 
-## TO-DO
+### For Fabric Vendors (User Role 3)
+- **Product Catalog** - List authentic fabrics with descriptions and prices
+- **Inventory Management** - Track fabric stock levels and variants
+- **Multiple Images** - Showcase fabric patterns and textures
+- **Vendor Profile** - Build trust with store branding and verification
+- **Sales Dashboard** - Monitor fabric sales and popular items
 
-* Fix logout functionality when going back to register page
+### For Admins (User Role 1)
+- **Vendor Management** - Verify and manage tailors and fabric sellers
+- **Product Management** - Moderate fabric and material listings
+- **Category Management** - Organize fabric types and tailoring services
+- **Order Oversight** - Monitor all transactions and resolve disputes
+- **Review Moderation** - Approve or reject reviews for quality control
+- **Brand Management** - Manage fabric brands and suppliers
+
+### Review System
+- ✅ 5-star rating system for tailors and fabrics
+- ✅ Verified purchase badges for authentic reviews
+- ✅ Review titles and detailed customer experiences
+- ✅ Rating breakdown and statistics
+- ✅ One review per customer per product/tailor
+- ✅ Automatic rating calculations
+- ✅ Helpful vote tracking
+
+### Tailor/Vendor Features
+- ✅ Public professional storefronts
+- ✅ Custom branding (logo, banner, bio)
+- ✅ Artisan ratings and verification badges
+- ✅ Portfolio and work samples
+- ✅ Social media integration
+- ✅ Client testimonials and reviews
+- ✅ Order and sales statistics
+
+## 🚀 Installation
+
+### Prerequisites
+- XAMPP (Apache + MySQL + PHP 7.4+)
+- Modern web browser
+- Git (optional)
+
+### Setup Steps
+
+1. **Clone or download** this repository to your XAMPP htdocs folder:
+   ```bash
+   cd /Applications/XAMPP/xamppfiles/htdocs/
+   git clone [repository-url] 25662026_Lab_02_Register_Login
+   ```
+
+2. **Start XAMPP** - Start Apache and MySQL services
+
+3. **Create Database**:
+   - Open phpMyAdmin: `http://localhost/phpmyadmin`
+   - Create a new database named `shoppn`
+
+4. **Import Database**:
+   - Import the base schema: `db/dbforlab.sql`
+   - Import reviews and seller features: `db/add_reviews_and_seller_features.sql`
+   - (Optional) Import sample products: `db/seed_products.sql`
+
+5. **Configure Database Connection**:
+   - Edit `settings/db_cred.php` with your database credentials:
+   ```php
+   $servername = "localhost";
+   $username = "root";
+   $password = "";
+   $database = "shoppn";
+   ```
+
+6. **Create Uploads Directory**:
+   ```bash
+   mkdir -p uploads
+   chmod 755 uploads
+   ```
+
+7. **Access the Application**:
+   - Homepage: `http://localhost/25662026_Lab_02_Register_Login/`
+   - Login: `http://localhost/25662026_Lab_02_Register_Login/login/login.php`
+   - Admin Panel: Login with admin credentials
+
+## 🔐 Test Accounts
+
+### Buyer Account
+- **Email**: testuser@test.com
+- **Password**: testpass2A,
+- **Role**: Customer (Buyer)
+
+### Admin Account
+- **Email**: testadmin@test.com
+- **Password**: testpass1A,
+- **Role**: Administrator
+
+### Seller Account
+- **Email**: testseller@test.com
+- **Password**: testpass3A,
+- **Role**: Tailor/Fabric Vendor
+
+> **Note**: If you don't have a tailor/vendor account, register a new account and update the `user_role` to `3` in the database.
+
+## 📁 Project Structure
+
+```
+├── actions/              # Backend API endpoints
+│   ├── add_review_action.php
+│   ├── get_review_action.php
+│   ├── get_seller_products_action.php
+│   ├── add_to_cart_action.php
+│   ├── login_user_action.php
+│   └── ...
+├── admin/               # Admin panel pages
+│   ├── product.php
+│   ├── category.php
+│   ├── brand.php
+│   └── orders.php
+├── classes/             # Database classes
+│   ├── product_class.php
+│   ├── cart_class.php
+│   ├── user_class.php
+│   └── ...
+├── controllers/         # Business logic controllers
+│   ├── product_controller.php
+│   ├── cart_controller.php
+│   └── ...
+├── css/                 # Stylesheets
+│   └── app.css
+├── db/                  # Database files
+│   ├── dbforlab.sql
+│   └── add_reviews_and_seller_features.sql
+├── js/                  # JavaScript files
+│   ├── cart.js
+│   ├── product.js
+│   └── ...
+├── login/               # Authentication pages
+│   ├── login.php
+│   ├── register.php
+│   └── logout.php
+├── settings/            # Configuration files
+│   ├── db_class.php
+│   ├── db_cred.php
+│   └── core.php
+├── uploads/             # Product images
+├── view/                # Frontend pages
+│   ├── all_product.php
+│   ├── single_product.php
+│   ├── seller_profile.php
+│   ├── cart.php
+│   ├── checkout.php
+│   └── ...
+└── index.php           # Homepage
+```
+
+## 🎨 Design Features
+
+- **SeamLink Branding** - Custom green theme (#198754) representing Ghana's colors
+- **Momo Trust Display Font** - Professional typography
+- **Kente Pattern Hero** - Celebrating Ghanaian textile heritage
+- **Responsive Design** - Mobile-friendly for tailors and customers on-the-go
+- **Modern UI** - Clean cards and smooth transitions
+- **Star Ratings** - Interactive 5-star review system for artisans
+- **Fashion-Focused Icons** - Tailoring and fabric-specific imagery
+
+## 🛠️ Technologies Used
+
+- **Backend**: PHP 7.4+
+- **Database**: MySQL 5.7+
+- **Frontend**: HTML5, CSS3, JavaScript
+- **Libraries**: jQuery 3.6.0
+- **Server**: Apache (XAMPP)
+- **Architecture**: MVC Pattern
+
+## 📊 Database Schema
+
+### Main Tables
+- `customer` - User accounts (buyers, sellers, admins)
+- `products` - Product catalog with ratings and stock
+- `categories` - Product categories
+- `brands` - Product brands
+- `cart` - Shopping cart items
+- `orders` - Order records
+- `orderdetails` - Order line items
+
+### New Tables (Review System)
+- `product_reviews` - Customer product reviews
+- `seller_profiles` - Seller store information
+- `product_images` - Multiple product images
+- `wishlist` - Customer saved items
+- `review_votes` - Review helpfulness votes
+
+## 🔧 Configuration
+
+### Upload Settings
+Edit `settings/upload_config.php` to configure image uploads:
+- Max file size: 5MB
+- Allowed formats: JPG, PNG, GIF, WebP
+- Upload directory: `uploads/`
+
+### User Roles
+- **1** = Administrator
+- **2** = Customer (Buyer)
+- **3** = Tailor/Seamstress/Fabric Vendor
+
+## 🐛 Known Issues
+
+- ~~Fix logout functionality when going back to register page~~ ✅ Fixed
+- Email notifications not yet implemented
+- Multiple product images feature needs frontend implementation
+
+## 📝 Recent Updates
+
+### November 10, 2025
+- ✅ Added complete review system with 5-star ratings
+- ✅ Implemented seller profile pages
+- ✅ Added verified purchase detection
+- ✅ Created automatic rating calculation triggers
+- ✅ Added stock management columns
+- ✅ Updated all product queries to include ratings
+- ✅ Created database views for top products and sellers
+
+## 🚧 Roadmap
+
+- [ ] Direct messaging between customers and tailors
+- [ ] Custom order request forms with measurements
+- [ ] Multiple fabric image galleries
+- [ ] Tailor portfolio/gallery feature
+- [ ] Advanced search (by fabric type, tailor specialty, price range)
+- [ ] Appointment booking for fittings
+- [ ] Payment gateway integration (Mobile Money, card payments)
+- [ ] Email notifications for orders and messages
+- [ ] Mobile app for iOS and Android
+
+---
+
+**Built with ❤️ in Ghana** | **SeamLink - Connecting Fashion & Heritage**
+
 

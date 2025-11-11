@@ -19,11 +19,16 @@ $offset = ($page - 1) * $limit;
 $category_filter = isset($_GET['category']) ? (int)$_GET['category'] : 0;
 $brand_filter = isset($_GET['brand']) ? (int)$_GET['brand'] : 0;
 $search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
+$type_filter = isset($_GET['type']) ? $_GET['type'] : ''; // 'fabric' or 'service'
 
 // Fetch products based on filters
 if (!empty($search_query)) {
     $products = search_products_ctr($search_query, $limit, $offset);
     $total_products = count_search_results_ctr($search_query);
+} elseif (!empty($type_filter) && in_array($type_filter, ['fabric', 'service'])) {
+    // Filter by product type (fabric or service)
+    $products = filter_products_by_type_ctr($type_filter, $limit, $offset);
+    $total_products = count_products_by_type_ctr($type_filter);
 } elseif ($category_filter > 0) {
     $products = filter_products_by_category_ctr($category_filter, $limit, $offset);
     $total_products = count_products_by_category_ctr($category_filter);
@@ -49,37 +54,64 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Products - E-Commerce Store</title>
+    <title>All Products - SeamLink</title>
     <link rel="stylesheet" href="../css/app.css">
 </head>
 <body>
-    <!-- Navigation Menu Tray -->
-    <div class="menu-tray">
-        <a href="../index.php" class="btn btn-sm btn-outline-secondary">Home</a>
-        <a href="all_product.php" class="btn btn-sm btn-primary">All Products</a>
-        <a href="cart.php" class="btn btn-sm btn-outline-secondary">
-            Cart <?php if ($cartCount > 0): ?><span class="cart-badge" id="cart-count"><?= $cartCount ?></span><?php endif; ?>
-        </a>
-        <?php if (isLoggedIn()): ?>
-            <?php if (isAdmin()): ?>
-                <a href="../admin/category.php" class="btn btn-sm btn-outline-secondary">Admin</a>
-            <?php endif; ?>
-            <a href="../login/logout.php" class="btn btn-sm btn-outline-danger">Logout</a>
-        <?php else: ?>
-            <a href="../login/login.php" class="btn btn-sm btn-outline-secondary">Login</a>
-            <a href="../login/register.php" class="btn btn-sm btn-outline-primary">Register</a>
-        <?php endif; ?>
-    </div>
+    <?php include __DIR__ . '/includes/menu.php'; ?>
 
     <!-- Page Header -->
     <div class="page-header">
         <div class="container">
-            <h1>All Products</h1>
-            <p>Discover our wide range of products</p>
+            <h1>Discover Fabrics & Tailoring Services</h1>
+            <p>Browse premium African fabrics and connect with skilled tailors</p>
         </div>
     </div>
 
     <div class="container">
+        <!-- Product Type Tabs -->
+        <div class="product-type-tabs" style="margin-bottom: 32px;">
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="?type=" class="type-tab <?= $type_filter === '' ? 'active' : '' ?>" style="text-decoration: none;">
+                    <i class="fas fa-th"></i> All Products & Services
+                </a>
+                <a href="?type=fabric" class="type-tab <?= $type_filter === 'fabric' ? 'active' : '' ?>" style="text-decoration: none;">
+                    <i class="fas fa-cut"></i> Fabrics & Materials
+                </a>
+                <a href="?type=service" class="type-tab <?= $type_filter === 'service' ? 'active' : '' ?>" style="text-decoration: none;">
+                    <i class="fas fa-user-tie"></i> Tailoring Services
+                </a>
+            </div>
+        </div>
+
+        <style>
+            .type-tab {
+                padding: 14px 28px;
+                border-radius: 10px;
+                border: 2px solid #e2e8f0;
+                background: white;
+                color: #64748b;
+                font-weight: 600;
+                transition: all 0.3s;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .type-tab:hover {
+                border-color: #198754;
+                color: #198754;
+                background: #f0fdf4;
+            }
+            .type-tab.active {
+                background: linear-gradient(135deg, #198754 0%, #157347 100%);
+                color: white;
+                border-color: #198754;
+            }
+            .type-tab i {
+                font-size: 18px;
+            }
+        </style>
+
         <!-- Search and Filter Section -->
         <div class="search-filter-section">
             <form method="GET" action="" id="searchForm">
@@ -89,11 +121,16 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
                         type="text" 
                         name="search" 
                         id="searchInput" 
-                        placeholder="Search products by name, description, or keywords..." 
+                        placeholder="Search fabrics, services, or vendors..." 
                         value="<?= htmlspecialchars($search_query) ?>"
                     >
                     <button type="submit">Search</button>
                 </div>
+
+                <!-- Hidden field to preserve type filter -->
+                <?php if (!empty($type_filter)): ?>
+                    <input type="hidden" name="type" value="<?= htmlspecialchars($type_filter) ?>">
+                <?php endif; ?>
 
                 <!-- Filters -->
                 <div class="filters">
@@ -112,9 +149,9 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
                     </div>
 
                     <div class="filter-group">
-                        <label for="brandFilter">Filter by Brand</label>
+                        <label for="brandFilter">Filter by Vendor</label>
                         <select name="brand" id="brandFilter" onchange="this.form.submit()">
-                            <option value="">All Brands</option>
+                            <option value="">All Vendors</option>
                             <?php if ($brands): ?>
                                 <?php foreach ($brands as $brand): ?>
                                     <option value="<?= $brand['brand_id'] ?>" <?= $brand_filter == $brand['brand_id'] ? 'selected' : '' ?>>
@@ -135,7 +172,7 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
         <!-- Results Count -->
         <?php if ($total_products > 0): ?>
             <div class="results-count">
-                Showing <?= (($page - 1) * $limit) + 1 ?> - <?= min($page * $limit, $total_products) ?> of <?= $total_products ?> products
+                Showing <?= (($page - 1) * $limit) + 1 ?> - <?= min($page * $limit, $total_products) ?> of <?= $total_products ?> fabrics
             </div>
         <?php endif; ?>
 
@@ -168,7 +205,24 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
                             <a href="single_product.php?id=<?= $product['product_id'] ?>" class="product-title">
                                 <?= htmlspecialchars($product['product_title']) ?>
                             </a>
-                            <div class="product-brand">Brand: <?= htmlspecialchars($product['brand_name'] ?? 'Unknown') ?></div>
+                            <div class="product-brand">Vendor: <?= htmlspecialchars($product['brand_name'] ?? 'Unknown') ?></div>
+                            
+                            <?php if (isset($product['rating_average']) && $product['rating_average'] > 0): ?>
+                                <div style="font-size: 14px; color: #666; margin: 8px 0;">
+                                    <span style="color: #ffc107;">
+                                        <?php
+                                        for ($i = 1; $i <= 5; $i++) {
+                                            echo $i <= round($product['rating_average']) ? '★' : '☆';
+                                        }
+                                        ?>
+                                    </span>
+                                    <?= number_format($product['rating_average'], 1) ?>
+                                    <?php if (isset($product['rating_count']) && $product['rating_count'] > 0): ?>
+                                        (<?= $product['rating_count'] ?>)
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+                            
                             <div class="price">GH₵ <?= number_format($product['product_price'], 2) ?></div>
                             <button class="add-to-cart-btn" onclick="addToCart(<?= $product['product_id'] ?>)">
                                 Add to Cart
@@ -185,6 +239,7 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
                     // Build query string for pagination
                     $query_params = [];
                     if (!empty($search_query)) $query_params['search'] = $search_query;
+                    if (!empty($type_filter)) $query_params['type'] = $type_filter;
                     if ($category_filter > 0) $query_params['category'] = $category_filter;
                     if ($brand_filter > 0) $query_params['brand'] = $brand_filter;
                     
@@ -220,8 +275,8 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
             <?php endif; ?>
         <?php else: ?>
             <div class="no-products">
-                <h3>No Products Found</h3>
-                <p>Try adjusting your search or filter criteria</p>
+                <h3>No Fabrics Found</h3>
+                <p>Try adjusting your search or filter criteria, or browse our full catalog</p>
             </div>
         <?php endif; ?>
     </div>
@@ -251,7 +306,14 @@ $brands = $db->db_fetch_all("SELECT brand_id, brand_name FROM brands ORDER BY br
                             $('a[href="cart.php"]').append('<span class="cart-badge" id="cart-count">' + response.cart_count + '</span>');
                         }
                     } else {
-                        alert(response.message || 'Failed to add item to cart');
+                        // Check if redirect is needed (not logged in)
+                        if (response.redirect) {
+                            if (confirm(response.message + '. Redirect to login page?')) {
+                                window.location.href = response.redirect;
+                            }
+                        } else {
+                            alert(response.message || 'Failed to add item to cart');
+                        }
                     }
                 },
                 error: function() {

@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once __DIR__ . '/../controllers/product_controller.php';
+require_once __DIR__ . '/../settings/db_class.php';
+require_once __DIR__ . '/../settings/core.php';
 
 // Get product ID from URL
 $product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -17,6 +19,63 @@ if (!$product) {
     header('Location: all_product.php');
     exit;
 }
+
+// Fetch seller information if product has a seller
+$seller_info = null;
+if (!empty($product['seller_id'])) {
+    $db = new db_connection();
+    $db->db_connect();
+    
+    $seller_sql = "SELECT c.customer_id, c.customer_name, 
+                   sp.store_name, sp.store_logo, sp.rating_average, sp.verified
+                   FROM customer c
+                   LEFT JOIN seller_profiles sp ON c.customer_id = sp.seller_id
+                   WHERE c.customer_id = {$product['seller_id']}";
+    
+    $seller_info = $db->db_fetch_one($seller_sql);
+}
+
+// Fetch reviews for this product
+$db = new db_connection();
+$db->db_connect();
+
+$reviews_sql = "SELECT pr.*, 
+                c.customer_name,
+                DATE_FORMAT(pr.created_at, '%M %d, %Y') as review_date
+                FROM product_reviews pr
+                JOIN customer c ON pr.customer_id = c.customer_id
+                WHERE pr.product_id = $product_id 
+                AND pr.status = 'approved'
+                ORDER BY pr.created_at DESC";
+
+$reviews = $db->db_fetch_all($reviews_sql);
+if ($reviews === false) {
+    $reviews = [];
+}
+
+// Calculate rating breakdown
+$rating_breakdown = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
+$total_reviews = count($reviews);
+$verified_count = 0;
+
+foreach ($reviews as $review) {
+    if (isset($review['rating']) && $review['rating'] >= 1 && $review['rating'] <= 5) {
+        $rating_breakdown[(int)$review['rating']]++;
+    }
+    if ($review['verified_purchase']) {
+        $verified_count++;
+    }
+}
+
+// Check if user has already reviewed this product
+$has_reviewed = false;
+if (isset($_SESSION['customer_id'])) {
+    $check_sql = "SELECT review_id FROM product_reviews 
+                  WHERE product_id = $product_id 
+                  AND customer_id = {$_SESSION['customer_id']}";
+    $existing = $db->db_fetch_one($check_sql);
+    $has_reviewed = ($existing !== false);
+}
 ?>
 
 <!DOCTYPE html>
@@ -24,67 +83,9 @@ if (!$product) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($product['product_title']) ?> - E-Commerce Store</title>
+    <title><?= htmlspecialchars($product['product_title']) ?> - SeamLink</title>
     <link rel="stylesheet" href="../css/app.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        .header {
-            background-color: #fff;
-            padding: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #666;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #007bff;
-        }
-
         /* Breadcrumb */
         .breadcrumb {
             margin-bottom: 20px;
@@ -107,13 +108,14 @@ if (!$product) {
 
         /* Product Detail Container */
         .product-detail {
-            background-color: #fff;
+            background-color: #fff !important;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             padding: 40px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 40px;
+            min-height: 500px;
         }
 
         /* Product Image Section */
@@ -127,8 +129,8 @@ if (!$product) {
             width: 100%;
             max-width: 500px;
             height: 500px;
-            object-fit: cover;
             border-radius: 8px;
+            overflow: hidden;
             background-color: #f0f0f0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
@@ -230,6 +232,79 @@ if (!$product) {
             margin-bottom: 20px;
         }
 
+        .product-seller {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .seller-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .seller-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .seller-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .seller-info {
+            flex: 1;
+        }
+
+        .seller-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .seller-details {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .seller-name {
+            font-weight: 600;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .seller-name:hover {
+            text-decoration: underline;
+        }
+
+        .seller-verified {
+            background: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .seller-rating {
+            color: #ffc107;
+            font-size: 14px;
+        }
+
         /* Action Buttons */
         .product-actions {
             display: flex;
@@ -239,7 +314,7 @@ if (!$product) {
 
         .add-to-cart-btn,
         .back-btn {
-            padding: 15px 30px;
+            padding: 12px 24px;
             font-size: 16px;
             font-weight: 600;
             border: none;
@@ -248,7 +323,6 @@ if (!$product) {
             transition: all 0.3s;
             text-decoration: none;
             text-align: center;
-            display: inline-block;
         }
 
         .add-to-cart-btn {
@@ -268,6 +342,311 @@ if (!$product) {
 
         .back-btn:hover {
             background-color: #5a6268;
+        }
+
+        /* Reviews Section Styles */
+        .reviews-section {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-top: 30px;
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .rating-summary {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .average-rating {
+            text-align: center;
+        }
+
+        .average-rating-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 24px;
+        }
+
+        .review-count {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .verified-purchase-count {
+            color: #28a745;
+            margin-left: 5px;
+        }
+
+        .rating-bars {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .rating-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .rating-bar-label {
+            width: 60px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .rating-bar-track {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rating-bar-fill {
+            height: 100%;
+            background: #ffc107;
+        }
+
+        .rating-bar-count {
+            width: 40px;
+            text-align: right;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .write-review-btn {
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .write-review-btn:hover {
+            background: #0056b3;
+        }
+
+        .write-review-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Review Form */
+        .review-form {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .review-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 5px;
+            font-size: 32px;
+            cursor: pointer;
+        }
+
+        .star-rating span {
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+        .star-rating span.active,
+        .star-rating span:hover,
+        .star-rating span:hover ~ span {
+            color: #ffc107;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-submit,
+        .btn-cancel {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: #218838;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        /* Review List */
+        .reviews-list {
+            margin-top: 30px;
+        }
+
+        .review-item {
+            padding: 24px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .reviewer-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .reviewer-details h4 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .review-meta {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .verified-badge {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .review-rating {
+            color: #ffc107;
+            font-size: 16px;
+        }
+
+        .review-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .review-text {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .review-date {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .no-reviews {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         /* Responsive Design */
@@ -292,37 +671,30 @@ if (!$product) {
             .product-actions {
                 flex-direction: column;
             }
+
+            .rating-summary {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .reviews-section {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-content">
-            <a href="../index.php" class="logo">E-Commerce Store</a>
-            <nav class="nav-links">
-                <a href="../index.php">Home</a>
-                <a href="all_product.php">All Products</a>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="../login/logout.php">Logout</a>
-                <?php else: ?>
-                    <a href="../login/login.php">Login</a>
-                    <a href="../login/register.php">Register</a>
-                <?php endif; ?>
-            </nav>
+    <?php include __DIR__ . '/includes/menu.php'; ?>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1><?= htmlspecialchars($product['product_title']) ?></h1>
+            <p><?= htmlspecialchars($product['cat_name'] ?? 'Fabric Details') ?></p>
         </div>
     </div>
 
     <div class="container">
-        <!-- Breadcrumb -->
-        <div class="breadcrumb">
-            <a href="../index.php">Home</a>
-            <span>›</span>
-            <a href="all_product.php">All Products</a>
-            <span>›</span>
-            <span><?= htmlspecialchars($product['product_title']) ?></span>
-        </div>
-
         <!-- Product Detail -->
         <div class="product-detail">
             <!-- Product Image Section -->
@@ -357,8 +729,40 @@ if (!$product) {
                 <h1 class="product-title"><?= htmlspecialchars($product['product_title']) ?></h1>
 
                 <div class="product-brand">
-                    <strong>Brand:</strong> <?= htmlspecialchars($product['brand_name'] ?? 'Unknown') ?>
+                    <strong>Vendor:</strong> <?= htmlspecialchars($product['brand_name'] ?? 'Unknown') ?>
                 </div>
+
+                <?php if ($seller_info): ?>
+                <div class="product-seller">
+                    <div class="seller-content">
+                        <?php if (!empty($seller_info['store_logo'])): ?>
+                            <img src="../uploads/<?= htmlspecialchars($seller_info['store_logo']) ?>" 
+                                 alt="Vendor Logo" 
+                                 class="seller-logo">
+                        <?php else: ?>
+                            <div class="seller-avatar">
+                                <?= strtoupper(substr($seller_info['customer_name'], 0, 1)) ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="seller-info">
+                            <div class="seller-label">Supplied by</div>
+                            <div class="seller-details">
+                                <a href="seller_profile.php?id=<?= $seller_info['customer_id'] ?>" class="seller-name">
+                                    <?= htmlspecialchars($seller_info['store_name'] ?? $seller_info['customer_name']) ?>
+                                </a>
+                                <?php if ($seller_info['verified']): ?>
+                                    <span class="seller-verified">✓ Verified Vendor</span>
+                                <?php endif; ?>
+                                <?php if ($seller_info['rating_average'] > 0): ?>
+                                    <span class="seller-rating">
+                                        ★ <?= number_format($seller_info['rating_average'], 1) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <div class="product-price">GH₵ <?= number_format($product['product_price'], 2) ?></div>
 
@@ -369,7 +773,7 @@ if (!$product) {
                 <!-- Product Description -->
                 <?php if (!empty($product['product_desc'])): ?>
                     <div class="product-description-section">
-                        <h2 class="section-title">Product Description</h2>
+                        <h2 class="section-title">Fabric Description</h2>
                         <p class="product-description"><?= nl2br(htmlspecialchars($product['product_desc'])) ?></p>
                     </div>
                 <?php endif; ?>
@@ -399,16 +803,259 @@ if (!$product) {
                     <button class="add-to-cart-btn" onclick="addToCart(<?= $product['product_id'] ?>)">
                         Add to Cart
                     </button>
-                    <a href="all_product.php" class="back-btn">Back to Products</a>
+                    <a href="all_product.php" class="back-btn">Back to Fabrics</a>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section">
+            <div class="reviews-header">
+                <div class="rating-summary">
+                    <div class="average-rating">
+                        <div class="average-rating-number"><?= number_format($product['rating_average'] ?? 0, 1) ?></div>
+                        <div class="stars">
+                            <?php
+                            $avg = $product['rating_average'] ?? 0;
+                            for ($i = 1; $i <= 5; $i++) {
+                                echo $i <= round($avg) ? '★' : '☆';
+                            }
+                            ?>
+                        </div>
+                        <div class="review-count">
+                            <?= $total_reviews ?> review<?= $total_reviews != 1 ? 's' : '' ?>
+                            <?php if ($verified_count > 0): ?>
+                                <span class="verified-purchase-count">(<?= $verified_count ?> verified purchase<?= $verified_count != 1 ? 's' : '' ?>)</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <?php if ($total_reviews > 0): ?>
+                    <div class="rating-bars">
+                        <?php for ($i = 5; $i >= 1; $i--): 
+                            $count = $rating_breakdown[$i];
+                            $percentage = $total_reviews > 0 ? ($count / $total_reviews * 100) : 0;
+                        ?>
+                        <div class="rating-bar">
+                            <span class="rating-bar-label"><?= $i ?> star<?= $i != 1 ? 's' : '' ?></span>
+                            <div class="rating-bar-track">
+                                <div class="rating-bar-fill" style="width: <?= $percentage ?>%"></div>
+                            </div>
+                            <span class="rating-bar-count"><?= $count ?></span>
+                        </div>
+                        <?php endfor; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <?php if (isset($_SESSION['customer_id'])): ?>
+                    <?php if ($has_reviewed): ?>
+                        <button class="write-review-btn" disabled>You've Already Reviewed</button>
+                    <?php else: ?>
+                        <button class="write-review-btn" onclick="toggleReviewForm()">Write a Review</button>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <a href="../login/login.php" class="write-review-btn" style="text-decoration: none; display: inline-block;">Login to Review</a>
+                <?php endif; ?>
+            </div>
+
+            <!-- Review Form -->
+            <?php if (isset($_SESSION['customer_id']) && !$has_reviewed): ?>
+            <div id="reviewForm" class="review-form">
+                <h3 style="margin-bottom: 20px;">Write Your Review</h3>
+                
+                <div id="reviewMessage"></div>
+
+                <form id="submitReviewForm">
+                    <input type="hidden" name="product_id" value="<?= $product_id ?>">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Rating *</label>
+                        <div class="star-rating" id="starRating">
+                            <span data-rating="5">☆</span>
+                            <span data-rating="4">☆</span>
+                            <span data-rating="3">☆</span>
+                            <span data-rating="2">☆</span>
+                            <span data-rating="1">☆</span>
+                        </div>
+                        <input type="hidden" name="rating" id="ratingValue" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reviewTitle">Review Title</label>
+                        <input type="text" class="form-input" id="reviewTitle" name="review_title" 
+                               placeholder="Sum up your experience" maxlength="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reviewText">Review *</label>
+                        <textarea class="form-textarea" id="reviewText" name="review_text" 
+                                  placeholder="Share your thoughts about this product (minimum 10 characters)" 
+                                  required minlength="10"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">Submit Review</button>
+                        <button type="button" class="btn-cancel" onclick="toggleReviewForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+            <?php endif; ?>
+
+            <!-- Reviews List -->
+            <div class="reviews-list">
+                <h3 style="margin-bottom: 20px;">Customer Reviews</h3>
+                
+                <?php if (empty($reviews)): ?>
+                    <div class="no-reviews">
+                        <div style="font-size: 48px; margin-bottom: 12px;">💬</div>
+                        <h4 style="margin-bottom: 8px; color: #666;">No reviews yet</h4>
+                        <p>Be the first to share your thoughts about this product!</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($reviews as $review): ?>
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">
+                                    <?= strtoupper(substr($review['customer_name'], 0, 1)) ?>
+                                </div>
+                                <div class="reviewer-details">
+                                    <h4>
+                                        <?= htmlspecialchars($review['customer_name']) ?>
+                                        <?php if ($review['verified_purchase']): ?>
+                                            <span class="verified-badge">✓ Verified Purchase</span>
+                                        <?php endif; ?>
+                                    </h4>
+                                    <div class="review-meta">
+                                        <span class="review-rating">
+                                            <?php
+                                            for ($i = 1; $i <= 5; $i++) {
+                                                echo $i <= $review['rating'] ? '★' : '☆';
+                                            }
+                                            ?>
+                                        </span>
+                                        <span class="review-date"> • <?= htmlspecialchars($review['review_date']) ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <?php if (!empty($review['review_title'])): ?>
+                            <div class="review-title"><?= htmlspecialchars($review['review_title']) ?></div>
+                        <?php endif; ?>
+
+                        <div class="review-text">
+                            <?= nl2br(htmlspecialchars($review['review_text'])) ?>
+                        </div>
+
+                        <?php if ($review['helpful_count'] > 0): ?>
+                            <div style="font-size: 13px; color: #666;">
+                                <?= $review['helpful_count'] ?> person<?= $review['helpful_count'] != 1 ? 's' : '' ?> found this helpful
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div> <!-- End container -->
 
     <!-- Load jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
     <script>
+        // Star rating functionality
+        let selectedRating = 0;
+        
+        document.querySelectorAll('#starRating span').forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.getAttribute('data-rating'));
+                document.getElementById('ratingValue').value = selectedRating;
+                updateStars();
+            });
+            
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+        });
+        
+        document.getElementById('starRating').addEventListener('mouseleave', function() {
+            updateStars();
+        });
+        
+        function highlightStars(rating) {
+            document.querySelectorAll('#starRating span').forEach(star => {
+                const starRating = parseInt(star.getAttribute('data-rating'));
+                if (starRating >= rating) {
+                    star.classList.add('active');
+                    star.textContent = '★';
+                } else {
+                    star.classList.remove('active');
+                    star.textContent = '☆';
+                }
+            });
+        }
+        
+        function updateStars() {
+            highlightStars(selectedRating);
+        }
+        
+        // Toggle review form
+        function toggleReviewForm() {
+            const form = document.getElementById('reviewForm');
+            form.classList.toggle('active');
+            if (form.classList.contains('active')) {
+                form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+        
+        // Submit review
+        document.getElementById('submitReviewForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (selectedRating === 0) {
+                showMessage('Please select a rating', 'error');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            
+            $.ajax({
+                url: '../actions/add_review_action.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        showMessage('Review submitted successfully! Refreshing page...', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        showMessage(response.message || 'Failed to submit review', 'error');
+                    }
+                },
+                error: function(xhr) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        showMessage(response.message || 'Error submitting review', 'error');
+                    } catch (e) {
+                        showMessage('Error submitting review. Please try again.', 'error');
+                    }
+                }
+            });
+        });
+        
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('reviewMessage');
+            messageDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
         // Add to cart functionality
         function addToCart(productId) {
             $.ajax({
@@ -436,7 +1083,14 @@ if (!$product) {
                             $('#cart-count').text(response.cart_count).show();
                         }
                     } else {
-                        alert(response.message || 'Failed to add item to cart');
+                        // Check if redirect is needed (not logged in)
+                        if (response.redirect) {
+                            if (confirm(response.message + '. Redirect to login page?')) {
+                                window.location.href = response.redirect;
+                            }
+                        } else {
+                            alert(response.message || 'Failed to add item to cart');
+                        }
                     }
                 },
                 error: function() {
