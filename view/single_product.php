@@ -756,7 +756,7 @@ if (isset($_SESSION['customer_id']) && $check_table) {
                         // If path starts with uploads/ (relative)
                         elseif (strpos($imagePath, 'uploads/') === 0) {
                             // Use absolute path from root for Ashesi server
-                            echo '<img src="/' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['product_title']) . '">';
+                            echo '<img src="../' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($product['product_title']) . '">';
                         }
                         // Otherwise relative path from view folder
                         else {
