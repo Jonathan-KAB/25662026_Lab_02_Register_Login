@@ -153,11 +153,11 @@ $customer = get_customer_by_id_ctr($customerId);
                         <div class="summary-divider"></div>
                         <div class="summary-row summary-total">
                             <span>Total</span>
-                            <span>GH₵ <?= number_format($cartTotal, 2) ?></span>
+                            <span id="totalAmount">GH₵ <?= number_format($cartTotal, 2) ?></span>
                         </div>
 
-                        <button type="submit" form="checkout-form" class="btn btn-primary btn-block" style="margin-top: 24px;">
-                            Place Order
+                        <button type="button" id="proceedToCheckout" class="btn btn-primary btn-block" style="margin-top: 24px;">
+                            Simulate Payment
                         </button>
                         
                         <a href="cart.php" class="btn btn-outline-secondary btn-block" style="margin-top: 12px;">
@@ -168,5 +168,85 @@ $customer = get_customer_by_id_ctr($customerId);
             </div>
         </div>
     </div>
+
+    <!-- Payment Modal (will be created by checkout.js) -->
+    <div id="paymentModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 0; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            <div style="padding: 24px; border-bottom: 1px solid #ddd;">
+                <h2 style="margin: 0; font-size: 24px; color: #333;">Simulate Payment</h2>
+            </div>
+            <div style="padding: 24px;">
+                <p style="color: #666; margin-bottom: 20px;">This is a simulated payment for demonstration purposes.</p>
+                <div class="payment-summary" style="background: #f9f9f9; padding: 16px; border-radius: 6px; margin-bottom: 24px;">
+                    <p style="margin: 8px 0;"><strong>Total Amount:</strong> <span id="modalTotal" style="font-size: 20px; color: #28a745;">GH₵ <?= number_format($cartTotal, 2) ?></span></p>
+                    <p style="margin: 8px 0;"><strong>Currency:</strong> GHS</p>
+                    <p style="margin: 8px 0;"><strong>Items:</strong> <?= array_sum(array_column($cartItems, 'qty')) ?></p>
+                </div>
+                <div id="paymentMessage" style="margin-bottom: 16px;"></div>
+                <div class="modal-actions" style="display: flex; gap: 12px;">
+                    <button type="button" id="confirmPayment" class="btn btn-success" style="flex: 1; padding: 12px;">
+                        Yes, I've Paid
+                    </button>
+                    <button type="button" id="cancelPayment" class="btn btn-secondary" style="flex: 1; padding: 12px;">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/checkout.js"></script>
+
+    <style>
+        .modal {
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .text-info {
+            color: #0c5460;
+            background: #d1ecf1;
+            padding: 12px;
+            border-radius: 6px;
+        }
+    </style>
 </body>
 </html>

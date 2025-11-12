@@ -137,6 +137,97 @@ function addToCart(productId) {
     // This would typically make an AJAX call to add the item to the cart
 }
 
+/**
+ * CART MANAGEMENT FUNCTIONS
+ */
+
+// Update cart item quantity dynamically
+function updateCartQuantity(productId, newQuantity) {
+    if (newQuantity < 1) {
+        removeFromCart(productId);
+        return;
+    }
+    
+    $.ajax({
+        url: '../actions/update_cart_action.php',
+        method: 'POST',
+        data: {
+            product_id: productId,
+            quantity: newQuantity
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success') {
+                // Update UI without page reload
+                updateCartDisplay();
+            } else {
+                alert(response.message || 'Failed to update cart');
+            }
+        },
+        error: function() {
+            alert('Error updating cart. Please try again.');
+        }
+    });
+}
+
+// Remove item from cart
+function removeFromCart(productId) {
+    if (!confirm('Remove this item from your cart?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: '../actions/remove_from_cart_action.php',
+        method: 'POST',
+        data: { product_id: productId },
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success') {
+                // Remove item from DOM
+                $(`.cart-item[data-product-id="${productId}"]`).fadeOut(300, function() {
+                    $(this).remove();
+                    updateCartDisplay();
+                });
+            } else {
+                alert(response.message || 'Failed to remove item');
+            }
+        },
+        error: function() {
+            alert('Error removing item. Please try again.');
+        }
+    });
+}
+
+// Empty entire cart
+function emptyEntireCart() {
+    if (!confirm('Are you sure you want to empty your entire cart?')) {
+        return;
+    }
+    
+    $.ajax({
+        url: '../actions/empty_cart_action.php',
+        method: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'success') {
+                location.reload();
+            } else {
+                alert(response.message || 'Failed to empty cart');
+            }
+        },
+        error: function() {
+            alert('Error emptying cart. Please try again.');
+        }
+    });
+}
+
+// Update cart display (totals, counts, etc.)
+function updateCartDisplay() {
+    // This would typically refresh cart totals without full page reload
+    // For now, we'll just reload the page
+    location.reload();
+}
+
 // AJAX-based product loading (optional enhancement)
 function loadProducts(action, params = {}) {
     const queryString = new URLSearchParams(params).toString();

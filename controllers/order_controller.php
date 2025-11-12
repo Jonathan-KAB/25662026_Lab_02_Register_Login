@@ -65,12 +65,28 @@ function add_order_detail_ctr($order_id, $product_id, $qty)
 }
 
 /**
+ * Add order details (alias for add_order_detail_ctr)
+ */
+function add_order_details_ctr($order_id, $product_id, $qty)
+{
+    return add_order_detail_ctr($order_id, $product_id, $qty);
+}
+
+/**
  * Add payment
  */
 function add_payment_ctr($customer_id, $order_id, $amount, $currency = 'GHS')
 {
     $order = new Order();
     return $order->addPayment($customer_id, $order_id, $amount, $currency);
+}
+
+/**
+ * Record payment (alias for add_payment_ctr)
+ */
+function record_payment_ctr($customer_id, $order_id, $amount, $currency = 'GHS')
+{
+    return add_payment_ctr($customer_id, $order_id, $amount, $currency);
 }
 
 /**

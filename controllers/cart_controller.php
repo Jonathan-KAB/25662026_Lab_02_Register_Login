@@ -52,6 +52,14 @@ function clear_cart_ctr($ipAddress, $customerId = null)
 }
 
 /**
+ * Empty cart (alias for clear_cart_ctr)
+ */
+function empty_cart_ctr($ipAddress, $customerId = null)
+{
+    return clear_cart_ctr($ipAddress, $customerId);
+}
+
+/**
  * Get cart count
  */
 function get_cart_count_ctr($ipAddress, $customerId = null)

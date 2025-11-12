@@ -49,6 +49,16 @@ $cartCount = count($cartItems);
                 </div>
             </div>
         <?php else: ?>
+            <!-- Cart Actions Bar - Sits above everything -->
+            <div class="cart-actions-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 8px 16px; background: white; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); max-width: fit-content;">
+                <div style="font-size: 13px; color: #666; margin-right: 20px;">
+                    <strong style="color: #333;"><?= array_sum(array_column($cartItems, 'qty')) ?></strong> item(s) in your cart
+                </div>
+                <button onclick="emptyCart()" class="btn btn-outline-danger" style="padding: 4px 12px; font-size: 13px; border: 1px solid #dc3545; background: white; color: #dc3545; border-radius: 4px; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                    <span style="margin-right: 4px;">🗑️</span> Empty Cart
+                </button>
+            </div>
+
             <div class="cart-container">
                 <div class="cart-items">
                     <?php foreach ($cartItems as $item): ?>
@@ -104,7 +114,7 @@ $cartCount = count($cartItems);
                             <a href="checkout.php" class="btn btn-primary btn-block" style="text-align: center; display: block; text-decoration: none;">
                                 Proceed to Checkout
                             </a>
-                            <a href="all_product.php" class="btn btn-outline-secondary btn-block" style="margin-top: 12px;">
+                            <a href="all_product.php" class="btn btn-outline-secondary btn-block" style="margin-top: 12px; text-align: center; display: block; text-decoration: none;">
                                 Continue Shopping
                             </a>
                         </div>
@@ -115,6 +125,7 @@ $cartCount = count($cartItems);
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../js/cart.js"></script>
     <script>
         function updateQuantity(productId, change) {
             const cartItem = $(`.cart-item[data-product-id="${productId}"]`);
@@ -168,6 +179,29 @@ $cartCount = count($cartItems);
                 },
                 error: function() {
                     alert('Error removing item');
+                }
+            });
+        }
+
+        function emptyCart() {
+            if (!confirm('Are you sure you want to empty your cart? This will remove all items.')) {
+                return;
+            }
+            
+            $.ajax({
+                url: '../actions/empty_cart_action.php',
+                method: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('Cart emptied successfully');
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Failed to empty cart');
+                    }
+                },
+                error: function() {
+                    alert('Error emptying cart');
                 }
             });
         }

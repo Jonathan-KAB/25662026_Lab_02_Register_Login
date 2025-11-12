@@ -24,7 +24,7 @@ $customerId = $_SESSION['customer_id'];
 
 // Get order details
 $order = get_order_by_id_ctr($orderId);
-$orderItems = get_order_details_ctr($orderId);
+$orderItems = get_order_items_ctr($orderId);
 
 // Verify order belongs to customer
 if (!$order || $order['customer_id'] != $customerId) {
@@ -99,12 +99,12 @@ if (!$order || $order['customer_id'] != $customerId) {
                 </div>
 
                 <div style="text-align: left; margin-bottom: 32px;">
-                    <h3 style="margin-bottom: 16px;">Shipping Address</h3>
+                    <h3 style="margin-bottom: 16px;">Shipping Information</h3>
                     <div style="color: var(--gray-700);">
-                        <?= htmlspecialchars($order['shipping_name']) ?><br>
-                        <?= htmlspecialchars($order['shipping_address']) ?><br>
-                        <?= htmlspecialchars($order['shipping_city']) ?>, <?= htmlspecialchars($order['shipping_country']) ?><br>
-                        <?= htmlspecialchars($order['shipping_contact']) ?>
+                        <strong><?= htmlspecialchars($order['customer_name']) ?></strong><br>
+                        <?= htmlspecialchars($order['customer_city']) ?>, <?= htmlspecialchars($order['customer_country']) ?><br>
+                        <?= htmlspecialchars($order['customer_contact']) ?><br>
+                        <?= htmlspecialchars($order['customer_email']) ?>
                     </div>
                 </div>
 
