@@ -90,6 +90,42 @@ function record_payment_ctr($customer_id, $order_id, $amount, $currency = 'GHS')
 }
 
 /**
+ * Add payment with Paystack details
+ */
+function add_payment_with_paystack_ctr($customer_id, $order_id, $amount, $currency = 'GHS', $transaction_ref = null, $payment_method = 'paystack', $authorization_code = null, $payment_channel = null)
+{
+    $order = new Order();
+    return $order->addPaymentWithPaystack($customer_id, $order_id, $amount, $currency, $transaction_ref, $payment_method, $authorization_code, $payment_channel);
+}
+
+/**
+ * Get payment by transaction reference
+ */
+function get_payment_by_transaction_ref_ctr($transaction_ref)
+{
+    $order = new Order();
+    return $order->getPaymentByTransactionRef($transaction_ref);
+}
+
+/**
+ * Update payment with Paystack response
+ */
+function update_payment_with_paystack_ctr($pay_id, $transaction_ref, $authorization_code = null, $payment_channel = null)
+{
+    $order = new Order();
+    return $order->updatePaymentWithPaystack($pay_id, $transaction_ref, $authorization_code, $payment_channel);
+}
+
+/**
+ * Get order by transaction reference
+ */
+function get_order_by_transaction_ref_ctr($transaction_ref)
+{
+    $order = new Order();
+    return $order->getOrderByTransactionRef($transaction_ref);
+}
+
+/**
  * Get orders by seller
  */
 function get_orders_by_seller_ctr($seller_id)

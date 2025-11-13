@@ -52,27 +52,16 @@ foreach ($cartItems as $item) {
 // Step 3: Generate unique invoice number (timestamp + random)
 $invoiceNo = time() . rand(1000, 9999);
 
-// Step 4: Create order in orders table
-$orderCreated = create_order_ctr($customerId, $invoiceNo);
+// Step 4: Create order in orders table and get order ID
+$orderId = create_order_ctr($customerId, $invoiceNo);
 
-if (!$orderCreated) {
+if (!$orderId) {
     $response['message'] = 'Failed to create order';
     echo json_encode($response);
     exit;
 }
 
-// Step 5: Get the last inserted order ID
-require_once __DIR__ . '/../classes/order_class.php';
-$orderClass = new Order();
-$orderId = $orderClass->getLastOrderId();
-
-if (!$orderId) {
-    $response['message'] = 'Failed to retrieve order ID';
-    echo json_encode($response);
-    exit;
-}
-
-// Step 6: Add order details (each cart item)
+// Step 5: Add order details (each cart item)
 $allDetailsAdded = true;
 foreach ($cartItems as $item) {
     $detailAdded = add_order_details_ctr($orderId, $item['p_id'], $item['qty']);
@@ -88,7 +77,7 @@ if (!$allDetailsAdded) {
     exit;
 }
 
-// Step 7: Record simulated payment
+// Step 6: Record simulated payment
 $paymentRecorded = record_payment_ctr($customerId, $orderId, $totalAmount, 'GHS');
 
 if (!$paymentRecorded) {
@@ -97,7 +86,7 @@ if (!$paymentRecorded) {
     exit;
 }
 
-// Step 8: Empty the cart
+// Step 7: Empty the cart
 $cartEmptied = empty_cart_ctr($ipAddress, $customerId);
 
 if (!$cartEmptied) {
@@ -105,7 +94,7 @@ if (!$cartEmptied) {
     error_log("Warning: Cart not emptied after checkout for customer $customerId");
 }
 
-// Step 9: Return success response
+// Step 8: Return success response
 $response = [
     'status' => 'success',
     'message' => 'Order placed successfully!',

@@ -84,12 +84,22 @@ class Order extends db_connection
      */
     public function createOrder($customer_id, $invoice_no)
     {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
         $customer_id = (int)$customer_id;
         $invoice_no = (int)$invoice_no;
         $sql = "INSERT INTO orders (customer_id, invoice_no, order_date, order_status) 
                 VALUES ($customer_id, $invoice_no, CURDATE(), 'pending')";
         
-        return $this->db_write_query($sql);
+        $result = mysqli_query($this->db, $sql);
+        
+        if ($result) {
+            return mysqli_insert_id($this->db);
+        }
+        
+        return false;
     }
 
     /**
@@ -127,6 +137,100 @@ class Order extends db_connection
     }
 
     /**
+     * Add payment with Paystack details
+     */
+    public function addPaymentWithPaystack($customer_id, $order_id, $amount, $currency = 'GHS', $transaction_ref = null, $payment_method = 'paystack', $authorization_code = null, $payment_channel = null)
+    {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
+        $customer_id = (int)$customer_id;
+        $order_id = (int)$order_id;
+        $amount = (float)$amount;
+        $currency = mysqli_real_escape_string($this->db, $currency);
+        $transaction_ref = $transaction_ref ? "'" . mysqli_real_escape_string($this->db, $transaction_ref) . "'" : 'NULL';
+        $payment_method = mysqli_real_escape_string($this->db, $payment_method);
+        $authorization_code = $authorization_code ? "'" . mysqli_real_escape_string($this->db, $authorization_code) . "'" : 'NULL';
+        $payment_channel = $payment_channel ? "'" . mysqli_real_escape_string($this->db, $payment_channel) . "'" : 'NULL';
+        
+        $sql = "INSERT INTO payment (amt, customer_id, order_id, currency, payment_date, payment_method, transaction_ref, authorization_code, payment_channel) 
+                VALUES ($amount, $customer_id, $order_id, '$currency', CURDATE(), '$payment_method', $transaction_ref, $authorization_code, $payment_channel)";
+        
+        return $this->db_write_query($sql);
+    }
+
+    /**
+     * Get payment by transaction reference
+     */
+    public function getPaymentByTransactionRef($transaction_ref)
+    {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
+        $transaction_ref = mysqli_real_escape_string($this->db, $transaction_ref);
+        $sql = "SELECT p.*, o.order_status, o.invoice_no, c.customer_name, c.customer_email
+                FROM payment p
+                LEFT JOIN orders o ON p.order_id = o.order_id
+                LEFT JOIN customer c ON p.customer_id = c.customer_id
+                WHERE p.transaction_ref = '$transaction_ref'";
+        
+        return $this->db_fetch_one($sql);
+    }
+
+    /**
+     * Update payment with Paystack response
+     */
+    public function updatePaymentWithPaystack($pay_id, $transaction_ref, $authorization_code = null, $payment_channel = null)
+    {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
+        $pay_id = (int)$pay_id;
+        $transaction_ref = mysqli_real_escape_string($this->db, $transaction_ref);
+        
+        $updates = ["transaction_ref = '$transaction_ref'"];
+        
+        if ($authorization_code) {
+            $authorization_code = mysqli_real_escape_string($this->db, $authorization_code);
+            $updates[] = "authorization_code = '$authorization_code'";
+        }
+        
+        if ($payment_channel) {
+            $payment_channel = mysqli_real_escape_string($this->db, $payment_channel);
+            $updates[] = "payment_channel = '$payment_channel'";
+        }
+        
+        $sql = "UPDATE payment SET " . implode(', ', $updates) . " WHERE pay_id = $pay_id";
+        
+        return $this->db_write_query($sql);
+    }
+
+    /**
+     * Get order by transaction reference
+     */
+    public function getOrderByTransactionRef($transaction_ref)
+    {
+        if (!$this->db_connect()) {
+            return false;
+        }
+        
+        $transaction_ref = mysqli_real_escape_string($this->db, $transaction_ref);
+        $sql = "SELECT o.*, c.customer_name, c.customer_email, c.customer_contact,
+                c.customer_city, c.customer_country,
+                p.amt as order_total, p.currency, p.payment_date, p.transaction_ref, 
+                p.payment_method, p.payment_channel
+                FROM orders o
+                LEFT JOIN customer c ON o.customer_id = c.customer_id
+                LEFT JOIN payment p ON o.order_id = p.order_id
+                WHERE p.transaction_ref = '$transaction_ref'";
+        
+        return $this->db_fetch_one($sql);
+    }
+
+    /**
      * Get orders by seller (vendor)
      */
     public function getOrdersBySeller($seller_id)
@@ -153,3 +257,7 @@ class Order extends db_connection
         return $this->last_insert_id();
     }
 }
+
+/** 
+ * TODO: Expand for PayStack table additions
+ */
